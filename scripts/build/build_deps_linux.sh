@@ -56,8 +56,9 @@ if [ "${FLAVOR}" == "debian" ]; then
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | \
+    sudo -S dnf -y check-update && \
+    sudo -S dnf -y update
 
 fi
 
@@ -71,8 +72,8 @@ if [ "${FLAVOR}" == "debian" ]; then
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | \
+    sudo -S dnf -y install make automake gcc gcc-c++ kernel-devel
 
 fi
 
@@ -86,28 +87,32 @@ if [ "${FLAVOR}" == "debian" ]; then
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | \
+    sudo -S dnf -y install git-core curl
 
 fi
 
 #
 # Install STABLE NODEJS and JXCORE
 #
+
+# Node source script
+
+# Install nodejs via package manager
 if [ "${FLAVOR}" == "debian" ]; then
 
   echo "${SUDO_PASSWORD}" | sudo -S true
   curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-
-  echo "${SUDO_PASSWORD}" | \
-    sudo apt-get install -y nodejs
-
-  echo "${SUDO_PASSWORD}" | sudo -S true
-  curl http://jxcore.com/xil.sh | sudo bash
+  echo "${SUDO_PASSWORD}" | sudo apt-get -y install nodejs
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | sudo -S true
+  curl -sL https://rpm.nodesource.com/setup_4.x | sudo -E bash -
+  echo "${SUDO_PASSWORD}" | sudo dnf -y install nodejs
 
 fi
+
+# Install JXcore via script
+echo "${SUDO_PASSWORD}" | sudo -S true
+curl http://jxcore.com/xil.sh | sudo bash
