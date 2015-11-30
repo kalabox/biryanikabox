@@ -30,6 +30,7 @@
     "rimraf": "~2.2.8",
     "shelljs": "^0.3.0",
     "uuid": "^2.0.1",
+    "verror": "^1.6.0",
     "vmrun.js": "https://github.com/phaus/vmrun.js/tarball/master"
   },
   "devDependencies": {

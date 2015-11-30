@@ -10,6 +10,15 @@ var os = require('os');
 var util = require('util');
 var Result = require('./result.js');
 var User = require('./user.js');
+var Snapshot = require('./snapshot.js');
+var VError = require('verror');
+
+var debugOn = false;
+function debug() {
+  if (debugOn) {
+    console.log.apply(_.toArray(arguments));
+  }
+};
 
 /*
  * Constructor.
@@ -32,7 +41,9 @@ Machine.prototype.__exec = function(cmd) {
   // @todo: add comments.
   return Promise.fromNode(function(cb) {
     cmd = cmd.join(' ');
-    console.log('exec: %s', cmd);
+    debug('exec: %s', cmd);
+    var buffer = '';
+    var errBuffer = '';
     var ps = exec(cmd, function(err) {
       if (err) {
         cb(err);
@@ -42,7 +53,16 @@ Machine.prototype.__exec = function(cmd) {
       cb(err);
     });
     ps.stdout.on('data', function(data) {
-      console.log('OUT: %s', data);
+      buffer += data;
+    });
+    ps.stderr.on('data', function(data) {
+      if (_.contains(data, 'JackRouter')) {
+
+      } else if (_.contains(data, 'Serato')) {
+
+      } else {
+        errBuffer += data;
+      }
     });
     ps.stderr.on('data', function(data) {
       if (_.contains(data, 'JackRouter')) {
@@ -52,15 +72,18 @@ Machine.prototype.__exec = function(cmd) {
       } else if (_.contains(data, 'Flip4Mac')) {
         
       } else {
-        console.log('ERR: %s', data);
+        debug('ERR: %s', data);
       }
     });
     ps.on('exit', function(code, signal) {
-      console.log('Exit: %s', code);
+      debug('Exit: %s', code);
       if (code === 0) {
-        cb();
+        debug('STDOUT: ' + buffer);
+        cb(null, buffer);
       } else {
-        cb(new Error('Non-zero exit code: ' + code));
+        var err = new Error('Non-zero exit code: ' + code + ' ' + errBuffer);
+        err.code = code;
+        cb(err);
       }
     });
   });
@@ -106,16 +129,24 @@ Machine.prototype.__execVmrun = function(action, opts) {
   }
 
   // Run command.
-  return self.__exec(cmd);
+  return self.__exec(cmd)
+  .tap(function(data) {
+    debug('OUT: ' + data);
+  });
 };
 
 /*
  * Internal version of starting vm.
  */
 Machine.prototype.__start = function(opts) {
-  opts.gui = opts.gui || false;
-  return this.__execVmrun('start', {
+  var self = this;
+  opts = opts || {};
+  opts.gui = _.get(opts, 'gui') || false;
+  return self.__execVmrun('start', {
     args: opts.gui ? ['gui'] : ['nogui']
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error starting vm: %s', self.path);
   });
 };
 
@@ -138,8 +169,12 @@ Machine.prototype.start = function(opts) {
  * Stop the vm gracefully.
  */
 Machine.prototype.stop = function() {
+  var self = this;
   // @todo: create a hard stop by maybe using options.
-  return this.__execVmrun('stop');
+  return self.__execVmrun('stop')
+  .catch(function(err) {
+    throw new VError(err, 'Error stopping vm: ' + self.path);
+  });
 };
 
 /*
@@ -157,13 +192,18 @@ Machine.prototype.waitDarwin = function(user) {
  */
 Machine.prototype.wait = function(user) {
   var self = this;
-  var os = process.platform;
-  switch (os) {
-    case 'darwin':
-      return self.waitDarwin(user);
-    default:
-      throw new Error('OS not supported: ' + os);
-  };
+  return Promise.try(function() {
+    var os = process.platform;
+    switch (os) {
+      case 'darwin':
+        return self.waitDarwin(user);
+      default:
+        throw new Error('OS not supported: ' + os);
+    };
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error waiting for vm: ' + self.path);
+  });
 };
 
 /*
@@ -195,7 +235,11 @@ Machine.prototype.putFile = function(fileIn) {
     ]
   })
   // Return file on the vm.
-  .return(fileOut);
+  .return(fileOut)
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error putting file: ' + fileIn);
+  });
 };
 
 /*
@@ -213,7 +257,11 @@ Machine.prototype.getFile = function(remoteFile, localDir) {
     ]
   })
   // Return the path of the file on the host.
-  .return(localFile);
+  .return(localFile)
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error getting file: ' + remoteFile);
+  });
 };
 
 /*
@@ -301,6 +349,86 @@ Machine.prototype.script = function(s) {
         });
       });
     });
+  })
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error running script.');
+  });
+};
+
+/*
+ * Create a snapshot of the vm.
+ */
+Machine.prototype.createSnapshot = function(name) {
+  return this.__execVmrun('snapshot', {
+    args: [name]
+  })
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error creating snapshot: ' + name);
+  });
+};
+
+/*
+ * Returns list of snapshot objects.
+ */
+Machine.prototype.listSnapshots = function() {
+  var self = this;
+  return self.__execVmrun('listSnapshots')
+  .then(function(data) {
+    var lines = data.split('\n');
+    var names = _.filter(lines, function(line) {
+      return line.length > 0 && !_.contains(line, 'Total snapshots:');
+    });
+    var snapshots = _.map(names, function(name) {
+      return new Snapshot(name, self);
+    });
+    return snapshots;
+  })
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error listing snapshots.');
+  });
+};
+
+/*
+ * Given the name of a snapshot it returns that snapshot, or null if not found.
+ */
+Machine.prototype.findSnapshot = function(name) {
+  var self = this;
+  // List snapshots.
+  return self.listSnapshots()
+  // Find snapshot that matches given name.
+  .then(function(snapshots) {
+    return _.find(snapshots, function(snapshot) {
+      return snapshot.name === name;
+    });
+  })
+  // Wrap errors.
+  .catch(function(err) {
+    throw new VError(err, 'Error finding snapshot: ' + name);
+  });
+};
+
+/*
+ * File exists in vm.
+ */
+Machine.prototype.fileExists = function(file) {
+  // Run file exists in guest command.
+  return this.__execVmrun('fileExistsInGuest', {
+    args: [file]
+  })
+  // If there was no error then the file exits.
+  .then(function() {
+    return true;
+  })
+  // If the error code was 255 then the file does not exist.
+  .catch(function(err) {
+    if (err.code === 255) {
+      return false;
+    } else {
+      throw new VError(err, 'Error checking if file exists: ' + file);
+    }
   });
 };
 
