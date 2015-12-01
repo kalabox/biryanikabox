@@ -18,7 +18,7 @@ vmrun.listMachines()
   // Start vm.
   .then(function() {
     console.log('Starting vm.');
-    return machine.start();
+    return machine.start({gui: true});
   })
   // Create file on vm.
   .then(function() {

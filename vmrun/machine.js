@@ -23,15 +23,8 @@ function debug() {
 /*
  * Constructor.
  */
-function Machine() {
-  // @todo: make path set from passed in options.
-  this.path = path.join(
-    '~',
-    'Documents',
-    '"Virtual Machines.localized"',
-    '"Ubuntu 64-bit 14.04.3.vmwarevm"',
-    '"Ubuntu 64-bit 14.04.3.vmx"'
-  );
+function Machine(path) {
+  this.path = path;
 }
 
 /*
