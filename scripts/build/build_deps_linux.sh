@@ -51,31 +51,40 @@ echo "Mmmmm this ${FLAVOR} flavor is so delcious~"
 if [ "${FLAVOR}" == "debian" ]; then
 
   echo "${SUDO_PASSWORD}" | \
-    sudo -S apt-get -y update && \
-    sudo -S apt-get -y upgrade
+    sudo -S apt-get -y update
+    # sudo -S apt-get -y upgrade
 
-elif [ "${FLAVOR}" == "fedora" ]; then
+ elif [ "${FLAVOR}" == "fedora" ]; then
 
   echo "${SUDO_PASSWORD}" | \
-    sudo -S dnf -y check-update && \
-    sudo -S dnf -y update
+    sudo -S dnf -y check-update
+    # sudo -S dnf -y update
 
 fi
+
+
+# #
+# WE ONLY NEED THE BELOW IF WE NEED COMPILE HIREDIS
+#
 
 #
 # Install our build essentials like make, gcc and their ilk
 #
-if [ "${FLAVOR}" == "debian" ]; then
+# if [ "${FLAVOR}" == "debian" ]; then
+#
+#  echo "${SUDO_PASSWORD}" | \
+#    sudo -S apt-get -y --force-yes install build-essential
+#
+# elif [ "${FLAVOR}" == "fedora" ]; then
+#
+#  echo "${SUDO_PASSWORD}" | \
+#    sudo -S dnf -y install make automake gcc gcc-c++ kernel-devel
+#
+# fi
 
-  echo "${SUDO_PASSWORD}" | \
-    sudo -S apt-get -y --force-yes install build-essential
-
-elif [ "${FLAVOR}" == "fedora" ]; then
-
-  echo "${SUDO_PASSWORD}" | \
-    sudo -S dnf -y install make automake gcc gcc-c++ kernel-devel
-
-fi
+#
+# WE ONLY NEED THE ABOVE IF WE NEED COMPILE HIREDIS
+#
 
 #
 # Grab some core packages like curl and git
