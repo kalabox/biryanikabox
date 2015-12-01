@@ -51,30 +51,40 @@ echo "Mmmmm this ${FLAVOR} flavor is so delcious~"
 if [ "${FLAVOR}" == "debian" ]; then
 
   echo "${SUDO_PASSWORD}" | \
-    sudo -S apt-get -y update && \
-    sudo -S apt-get -y upgrade
+    sudo -S apt-get -y update
+    # sudo -S apt-get -y upgrade
 
-elif [ "${FLAVOR}" == "fedora" ]; then
+ elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | \
+    sudo -S dnf -y check-update
+    # sudo -S dnf -y update
 
 fi
+
+
+# #
+# WE ONLY NEED THE BELOW IF WE NEED COMPILE HIREDIS
+#
 
 #
 # Install our build essentials like make, gcc and their ilk
 #
-if [ "${FLAVOR}" == "debian" ]; then
+# if [ "${FLAVOR}" == "debian" ]; then
+#
+#  echo "${SUDO_PASSWORD}" | \
+#    sudo -S apt-get -y --force-yes install build-essential
+#
+# elif [ "${FLAVOR}" == "fedora" ]; then
+#
+#  echo "${SUDO_PASSWORD}" | \
+#    sudo -S dnf -y install make automake gcc gcc-c++ kernel-devel
+#
+# fi
 
-  echo "${SUDO_PASSWORD}" | \
-    sudo -S apt-get -y --force-yes install build-essential
-
-elif [ "${FLAVOR}" == "fedora" ]; then
-
-  echo
-  # @todo fedora yum/dnf stuff
-
-fi
+#
+# WE ONLY NEED THE ABOVE IF WE NEED COMPILE HIREDIS
+#
 
 #
 # Grab some core packages like curl and git
@@ -86,28 +96,32 @@ if [ "${FLAVOR}" == "debian" ]; then
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | \
+    sudo -S dnf -y install git-core curl
 
 fi
 
 #
 # Install STABLE NODEJS and JXCORE
 #
+
+# Node source script
+
+# Install nodejs via package manager
 if [ "${FLAVOR}" == "debian" ]; then
 
   echo "${SUDO_PASSWORD}" | sudo -S true
   curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-
-  echo "${SUDO_PASSWORD}" | \
-    sudo apt-get install -y nodejs
-
-  echo "${SUDO_PASSWORD}" | sudo -S true
-  curl http://jxcore.com/xil.sh | sudo bash
+  echo "${SUDO_PASSWORD}" | sudo apt-get -y install nodejs
 
 elif [ "${FLAVOR}" == "fedora" ]; then
 
-  echo
-  # @todo fedora yum/dnf stuff
+  echo "${SUDO_PASSWORD}" | sudo -S true
+  curl -sL https://rpm.nodesource.com/setup_4.x | sudo -E bash -
+  echo "${SUDO_PASSWORD}" | sudo dnf -y install nodejs
 
 fi
+
+# Install JXcore via script
+echo "${SUDO_PASSWORD}" | sudo -S true
+curl http://jxcore.com/xil.sh | sudo bash

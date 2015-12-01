@@ -67,5 +67,7 @@ git checkout $WORKING_BRANCH
 npm install
 
 # Symlink the binary
+if [ ! -f /usr/local/bin/kbox ]; then
 echo "${SUDO_PASSWORD}" | \
   sudo -S ln -s $HOME/kalabox/bin/kbox.js /usr/local/bin/kbox
+fi
