@@ -77,6 +77,13 @@ Context.prototype.run = function(s) {
 };
 
 /*
+ * Returns the chains promise.
+ */
+Context.prototype.promise = function() {
+  return this.p;
+};
+
+/*
  * Cap the chain and do some cleaning up.
  */
 Context.prototype.done = function() {
@@ -85,7 +92,7 @@ Context.prototype.done = function() {
   self.p = self.p.finally(function() {
     return self.machine.stop();
   });
-  return self.p;
+  return self.promise();
 };
 
 /*
