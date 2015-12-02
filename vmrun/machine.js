@@ -26,6 +26,7 @@ function debug() {
 function Machine(config) {
   this.name = config.name;
   this.path = config.path;
+  this.user = new User('kalabox', 'kalabox');
 }
 
 /*
@@ -346,7 +347,7 @@ Machine.prototype.script = function(s) {
   })
   // Wrap errors.
   .catch(function(err) {
-    throw new VError(err, 'Error running script.');
+    throw new VError(err, 'Error running script: "%s"', s);
   });
 };
 
@@ -444,7 +445,7 @@ Machine.prototype.fileExists = function(file) {
 /*
  * Set the user this machine will use.
  */
-Machine.prototype.user = function(u, p) {
+Machine.prototype.setUser = function(u, p) {
   if (u instanceof User) {
     this.user = u;
   } else {
