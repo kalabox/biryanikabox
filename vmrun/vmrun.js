@@ -46,13 +46,13 @@ VMRun.prototype.listMachinesDarwin = function() {
   // Filter out properties without a config.
   .then(function(data) {
     return _.filter(_.values(data), function(obj) {
-      return !!obj.config; 
+      return !!obj.config && !!obj.DisplayName; 
     });
   })
   // Map to Machine objects.
   .map(function(data) {
     return new Machine({
-      name: data.DisplayName,
+      name: _.trim(data.DisplayName, '"'),
       path: data.config
     });
   })
