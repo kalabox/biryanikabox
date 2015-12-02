@@ -51,7 +51,10 @@ VMRun.prototype.listMachinesDarwin = function() {
   })
   // Map to Machine objects.
   .map(function(data) {
-    return new Machine(data.config);
+    return new Machine({
+      name: data.DisplayName,
+      path: data.config
+    });
   })
   // Wrap errors.
   .catch(function(err) {
@@ -75,6 +78,35 @@ VMRun.prototype.listMachines = function() {
     // Make sure we know this host's os is not yet supported.
     throw new Error('OS not supported: ' + os);
   }
+};
+
+/*
+ * Find a machine whos name matches given name.
+ */
+VMRun.prototype.findMachine = function(name) {
+  var self = this;
+  // List machines.
+  return self.listMachines()
+  // Find machine with a matching name.
+  .then(function(machines) {
+    return _.find(machines, function(machine) {
+      return machine.name === name;
+    });
+  });
+};
+
+/*
+ * Find a machine whos name matches given name, throw an error if
+ * no machine matching name exists.
+ */
+VMRun.prototype.findMachineThrows = function(name) {
+  var self = this;
+  return self.findMachine(name)
+  .tap(function(machine) {
+    if (!machine) {
+      throw new Error('Machine does not exist: ' + name);
+    }
+  });
 };
 
 /*

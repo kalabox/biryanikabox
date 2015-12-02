@@ -23,8 +23,9 @@ function debug() {
 /*
  * Constructor.
  */
-function Machine(path) {
-  this.path = path;
+function Machine(config) {
+  this.name = config.name;
+  this.path = config.path;
 }
 
 /*
@@ -400,6 +401,21 @@ Machine.prototype.findSnapshot = function(name) {
   // Wrap errors.
   .catch(function(err) {
     throw new VError(err, 'Error finding snapshot: ' + name);
+  });
+};
+
+/*
+ * Given the name of a snapshot it returns that snapshot, or throw and error
+ * if snapshot was not found.
+ */
+Machine.prototype.findSnapshotThrows = function(name) {
+  var self = this;
+  return self.findSnapshot(name)
+  .tap(function(snapshot) {
+    if (!snapshot) {
+      var tag = [self.name, name].join(':');
+      throw new Error('Snapshot does not exist: ' + tag);
+    }
   });
 };
 
