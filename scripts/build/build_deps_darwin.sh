@@ -17,20 +17,57 @@
 # Set some things in the environment for us to use
 SUDO_PASSWORD="kalabox"
 
-# Move to a tmp dir and download the git package
+# Get TCUTIL to help us manage accessability things
 cd /tmp
-curl -LO http://sourceforge.net/projects/git-osx-installer/files/git-2.6.2-intel-universal-mavericks.dmg
+curl -O https://raw.githubusercontent.com/kalabox/tccutil/master/tccutil.py
+echo "${SUDO_PASSWORD}" | sudo -S \
+  mv tccutil.py /usr/bin/tccutil.py && \
+  chmod +x /usr/bin/tccutil.py && \
 
-# Mount the git DMG
-hdiutil attach git-2.6.2-intel-universal-mavericks.dmg
+# White list the needed apps
+echo "${SUDO_PASSWORD}" | sudo -S \
+  tccutil.py --insert /usr/bin/osascript
+echo "${SUDO_PASSWORD}" | sudo -S \
+  tccutil.py --insert com.apple.Terminal
+echo "${SUDO_PASSWORD}" | sudo -S \
+  tccutil.py --enable com.apple.Terminal
 
-# Install the git package
-echo "${SUDO_PASSWORD}" | \
-  sudo -S installer -pkg "/Volumes/Git 2.6.2 Mavericks Intel Universal/git-2.6.2-intel-universal-mavericks.pkg" -target /
+# Install the command line tools
+xcode-select --install
+sleep 5
+osascript <<EOD
+  tell application "System Events"
+    tell process "Install Command Line Developer Tools"
+      keystroke return
+      click button "Agree" of window "License Agreement"
+    end tell
+  end tell
+EOD
 
-# Create alias to workaround xcode
-echo "alias git=\"/usr/local/git/bin/git\"" > ~/.profile
-source ~/.profile
+# Wait until we have installed command line tools
+osascript <<EOD
+  tell application "Finder"
+    repeat
+      if exists "/Library/Developer/CommandLineTools/usr/bin/git" as POSIX file then
+        exit repeat
+      else
+        delay 0.5
+      end if
+    end repeat
+  end tell
+EOD
+
+# Small delay to wait for below window to show up
+sleep 10
+
+# Close out the command tools install
+osascript <<EOD
+  tell application "System Events"
+    tell process "Install Command Line Developer Tools"
+      click button "Done" of window 1
+    end tell
+  end tell
+EOD
 
 # Move to tmp and download the node package
 cd /tmp
