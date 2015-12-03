@@ -4,7 +4,7 @@ A testing platform for Kalabox
 
 ### Some assumptions:
 
-This script assumes you are logged in as a sudouser with this constitution
+This framework assumes you are logged in as a sudouser with this constitution.
 
   u: kalabox
   p: kalabox
@@ -18,6 +18,8 @@ curl -sL https://raw.githubusercontent.com/pirog/biryanikabox/master/scripts/bui
 ```
 
 ### Install build dependencies on OSX
+
+NOTE: Debian users will need to have sudo and curl installed.
 
 ```
 curl -sL https://raw.githubusercontent.com/pirog/biryanikabox/master/scripts/build/build_deps_darwin.sh | bash
