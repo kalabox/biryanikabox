@@ -16,7 +16,7 @@
 #
 
 # Set some things in the environment for us to use
-SUDO_PASSWORD='kalabox'
+SUDO_PASSWORD="kalabox"
 
 #
 # Gather information about the system and state
