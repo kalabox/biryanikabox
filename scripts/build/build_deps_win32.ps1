@@ -9,6 +9,16 @@
 # machine
 #
 
+#
+# Some assumptions:
+#
+#  This script assumes you are logged in as a sudouser with this constitution
+#  u: kalabox
+#  p: kalabox
+#
+# It also assumed you have disabled UAC so we can run things non-interactively
+#
+
 # Get some ENV things
 $temp_dir = $env:TMP
 
