@@ -32,7 +32,7 @@ $node_dest = "$temp_dir\node-installer.msi"
 
 $jx_url = "https://jxcore.s3.amazonaws.com/0307/jx_winsetup.zip"
 $jx_dest = "$temp_dir\jx_winsetup.zip"
-$jx_installer = "$temp_dir\jx_winsetup\jx_winsetup\JXcore_setup.exe"
+$jx_installer = "$temp_dir\jx_winsetup\JXcore_setup.exe"
 
 # Unzip helper
 function Unzip($file, $destination)
