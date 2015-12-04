@@ -67,6 +67,33 @@ Context.prototype.snapshot = function(id) {
 };
 
 /*
+ * Revert to an existing snapshot.
+ */
+Context.prototype.revert = function(id) {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.findSnapshotThrows(id)
+    .then(function(snapshot) {
+      return snapshot.revert();
+    });
+  });
+};
+
+/*
+ * Stop and then start vm.
+ */
+Context.prototype.restart = function() {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.stop()
+    .then(function() {
+      self.machine.start();
+    }) ;
+  });
+dd
+};
+
+/*
  * Run a script.
  */
 Context.prototype.run = function(s) {
@@ -74,6 +101,15 @@ Context.prototype.run = function(s) {
   return self.chain(function() {
     return self.machine.script(s);
   });
+};
+
+/*
+ * Returns the chains promise.
+ */
+Context.prototype.promise = function() {
+  var p = this.p;
+  this.p = Promise.resolve();
+  return p;
 };
 
 /*
@@ -85,7 +121,7 @@ Context.prototype.done = function() {
   self.p = self.p.finally(function() {
     return self.machine.stop();
   });
-  return self.p;
+  return self.promise();
 };
 
 /*

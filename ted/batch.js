@@ -6,13 +6,18 @@ var exec = require('child_process').exec;
 var VError = require('verror');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+var env = require('./env.js');
+var yaml = require('./yaml.js');
+var fs = require('fs');
 
 /*
  * Constructor: a batch is a group of tests run together.
  */
 function Batch(config) {
+  this.name = config.name;
   this.reporter = config.reporter || 'json-stream';
   this.files = config.files;
+  this.tags = config.tags;
   EventEmitter.call(this);
 }
 util.inherits(Batch, EventEmitter);
@@ -22,12 +27,21 @@ util.inherits(Batch, EventEmitter);
  */
 Batch.prototype.run = function() {
   var self = this;
-  // Execute mocha cli command.
+  // Add each of the batches tags process.env.
   return Promise.try(function() {
+    env.vms.reset();
+    _.each(self.tags, function(tag) {
+      env.vms.add(tag);
+    })
+  })
+  // Execute mocha cli command.
+  .then(function() {
     // Build command.
     var cmd = [
       'mocha',
       '-R', self.reporter,
+      '--require', './globals.js',
+      '--timeout', 60 * 60 * 1000
     ];
     // Add files to test.
     cmd = cmd.concat(self.files);
@@ -39,6 +53,9 @@ Batch.prototype.run = function() {
   .then(function(ps) {
     // This will later on be set by and end event and returned with promise.
     var result = null;
+    ps.stderr.on('data', function(data) {
+      console.log('ERR: %s',data);
+    });
     // Handle lines of data coming back from child process.
     ps.stdout.on('data', function(data) {
       // Parse line data.
@@ -76,6 +93,31 @@ Batch.prototype.run = function() {
   .catch(function(err) {
     self.emit('error', err);
     throw err;
+  });
+};
+
+/*
+ * Return an instance of a batch from yaml data.
+ */
+Batch.fromYaml = function(data) {
+  // Parse yaml data.
+  return yaml.parse(data)
+  // Return new instance.
+  .then(function(config) {
+    return new Batch(config);
+  })
+};
+
+/*
+ * Return an instance of a batch from a yaml filepath.
+ */
+Batch.fromYamlFile = function(file) {
+  var self = this;
+  // Read and parse yaml file.
+  return yaml.parseFile(file)
+  // Return an instance of a batch from yaml data.
+  .then(function(config) {
+    return new Batch(config);
   });
 };
 
