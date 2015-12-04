@@ -25,7 +25,8 @@ $temp_dir = $env:TMP
 # Set metadatas
 $git_url = "https://github.com/git-for-windows/git/releases/download/v2.6.3.windows.1/Git-2.6.3-64-bit.exe"
 $git_dest = "$temp_dir\git-installer.exe"
-$git_bin = "C:\Users\kalabox\AppData\Local\Programs\Git\bin"
+$git_bin = "C:\Program Files\Git\bin"
+$git_bin_alt = "C:\Users\kalabox\AppData\Local\Programs\Git\bin"
 
 $node_url = "https://nodejs.org/dist/v4.2.2/node-v4.2.2-x86.msi"
 $node_dest = "$temp_dir\node-installer.msi"
@@ -76,6 +77,17 @@ function InstallMsi($file)
   Write-Output "Installed with $file"
 }
 
+# Install helper
+function UpdatePath($location)
+{
+  if ((Test-Path "$location"))
+  {
+    Write-Output "Adding git to our PATH..."
+    [Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $location, [EnvironmentVariableTarget]::User)
+    Write-Output "Added."
+  }
+}
+
 # Download The things we need
 Write-Output "Grabbing the files we need..."
 Download -Url $git_url -Destination $git_dest
@@ -93,9 +105,8 @@ InstallMsi -File $node_dest
 InstallExe -File $jx_installer
 
 # Add git to our cmd Path
-Write-Output "Adding git to our PATH..."
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $git_bin, [EnvironmentVariableTarget]::User)
-Write-Output "Added."
+UpdatePath -Location $git_bin
+UpdatePath -Location $git_bin_alt
 
 # All Done!
 Write-Output "Installation of dependencies complete!"
