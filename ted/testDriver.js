@@ -80,6 +80,16 @@ Context.prototype.revert = function(id) {
 };
 
 /*
+ * Start vm.
+ */
+Context.prototype.start = function() {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.start();
+  });
+};
+
+/*
  * Stop and then start vm.
  */
 Context.prototype.restart = function() {
@@ -104,6 +114,29 @@ Context.prototype.run = function(s) {
 };
 
 /*
+ * Install kalabox and create install snapshot.
+ */
+Context.prototype.install = function() {
+  var self = this;
+  return self.chain(function() {
+    var cmds = [
+      '../scripts/build/build_deps_linux.sh',
+      'git version',
+      'npm version'
+    ];
+    return Promise.each(cmds, function(cmd) {
+      return self.machine.script(cmd);
+    })
+    .then(function() {
+      return self.machine.createSnapshot('install')
+      .then(function() {
+        self.snapshots.push('install');
+      });
+    });
+  });
+};
+
+/*
  * Returns the chains promise.
  */
 Context.prototype.promise = function() {
@@ -115,11 +148,20 @@ Context.prototype.promise = function() {
 /*
  * Cap the chain and do some cleaning up.
  */
-Context.prototype.done = function() {
+Context.prototype.cleanup = function() {
   var self = this;
-  // @todo: cleanup snapshot created during the context.
   self.p = self.p.finally(function() {
-    return self.machine.stop();
+    // Stop machine.
+    return self.machine.stop()
+    // Cleanup snapshots created within context.
+    .finally(function() {
+      return Promise.each(self.snapshots, function(snapshotName) {
+        return self.machine.findSnapshotThrows(snapshotName)
+        .then(function(snapshot) {
+          return snapshot.remove();
+        });
+      });
+    });
   });
   return self.promise();
 };
@@ -130,5 +172,8 @@ Context.prototype.done = function() {
 module.exports = {
   vm: function(tag) {
     return new Context(tag);
+  },
+  install: function(tag) {
+    return new Context(tag).install();
   }
 };
