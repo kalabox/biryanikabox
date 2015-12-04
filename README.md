@@ -24,3 +24,13 @@ curl -sL https://raw.githubusercontent.com/pirog/biryanikabox/master/scripts/bui
 ```
 
 ### Install build dependencies on Windows
+
+Download these two files to the same directory
+
+1. https://raw.githubusercontent.com/pirog/biryanikabox/master/scripts/build/build_deps_win32.bat
+2. https://raw.githubusercontent.com/pirog/biryanikabox/master/scripts/build/build_deps_win32.ps1
+
+```
+cd /path/to/scripts
+build_deps_win32.bat
+```
