@@ -29,17 +29,17 @@ if [ -f /etc/os-release ]; then
 # Some OS do not implement /etc/os-release yet so lets do this in case
 # they dont
 elif [ -f /etc/arch-release ]; then
-  ID_LIKE="arch"
+  FLAVOR="arch"
 elif [ -f /etc/gentoo-release ]; then
-  ID_LIKE="gentoo"
+  FLAVOR="gentoo"
 elif [ -f /etc/fedora-release ]; then
-  ID_LIKE="fedora"
+  FLAVOR="fedora"
 elif [ -f /etc/redhat-release ]; then
-  ID_LIKE="redhat"
+  FLAVOR="redhat"
 elif [ -f /etc/debian_version ]; then
-  ID_LIKE="debian"
+  FLAVOR="debian"
 else
-  ID_LIKE="whoknows"
+  FLAVOR="whoknows"
 fi
 
 # Print flavor info
@@ -61,30 +61,6 @@ if [ "${FLAVOR}" == "debian" ]; then
     # sudo -S dnf -y update
 
 fi
-
-
-# #
-# WE ONLY NEED THE BELOW IF WE NEED COMPILE HIREDIS
-#
-
-#
-# Install our build essentials like make, gcc and their ilk
-#
-# if [ "${FLAVOR}" == "debian" ]; then
-#
-#  echo "${SUDO_PASSWORD}" | \
-#    sudo -S apt-get -y --force-yes install build-essential
-#
-# elif [ "${FLAVOR}" == "fedora" ]; then
-#
-#  echo "${SUDO_PASSWORD}" | \
-#    sudo -S dnf -y install make automake gcc gcc-c++ kernel-devel
-#
-# fi
-
-#
-# WE ONLY NEED THE ABOVE IF WE NEED COMPILE HIREDIS
-#
 
 #
 # Grab some core packages like curl and git
@@ -125,3 +101,7 @@ fi
 # Install JXcore via script
 echo "${SUDO_PASSWORD}" | sudo -S true
 curl http://jxcore.com/xil.sh | sudo bash
+
+# Add our devmode ENV
+echo "export KALABOX_DEV=true" > ~/.bashrc
+source ~/.bashrc

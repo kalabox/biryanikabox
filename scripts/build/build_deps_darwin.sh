@@ -21,8 +21,11 @@ SUDO_PASSWORD="kalabox"
 cd /tmp
 curl -O https://raw.githubusercontent.com/kalabox/tccutil/master/tccutil.py
 echo "${SUDO_PASSWORD}" | sudo -S \
-  mv tccutil.py /usr/bin/tccutil.py && \
-  chmod +x /usr/bin/tccutil.py && \
+  mkdir -p /usr/local/bin
+echo "${SUDO_PASSWORD}" | sudo -S \
+  mv tccutil.py /usr/local/bin/tccutil.py
+echo "${SUDO_PASSWORD}" | sudo -S \
+  chmod +x /usr/local/bin/tccutil.py
 
 # White list the needed apps
 echo "${SUDO_PASSWORD}" | sudo -S \
@@ -81,4 +84,6 @@ echo "${SUDO_PASSWORD}" | \
 echo "${SUDO_PASSWORD}" | sudo -S true
 curl http://jxcore.com/xil.sh | sudo bash
 
-
+# Add our devmode ENV
+echo "export KALABOX_DEV=true" > ~/.profile
+source ~/.profile

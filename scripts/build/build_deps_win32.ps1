@@ -108,5 +108,9 @@ InstallExe -File $jx_installer
 UpdatePath -Location $git_bin
 UpdatePath -Location $git_bin_alt
 
+# Get Kalabox into DEV mode
+Write-Output "Setting Kalabox to dev mode"
+[Environment]::SetEnvironmentVariable("KALABOX_DEV", "true", [EnvironmentVariableTarget]::User)
+
 # All Done!
 Write-Output "Installation of dependencies complete!"
