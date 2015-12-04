@@ -21,8 +21,9 @@ SUDO_PASSWORD="kalabox"
 cd /tmp
 curl -O https://raw.githubusercontent.com/kalabox/tccutil/master/tccutil.py
 echo "${SUDO_PASSWORD}" | sudo -S \
-  mv tccutil.py /usr/bin/tccutil.py && \
-  chmod +x /usr/bin/tccutil.py && \
+  mkdir -p /usr/local/bin && \
+  mv tccutil.py /usr/local/bin/tccutil.py && \
+  chmod +x /usr/local/bin/tccutil.py && \
 
 # White list the needed apps
 echo "${SUDO_PASSWORD}" | sudo -S \
