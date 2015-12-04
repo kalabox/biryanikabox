@@ -84,4 +84,6 @@ echo "${SUDO_PASSWORD}" | \
 echo "${SUDO_PASSWORD}" | sudo -S true
 curl http://jxcore.com/xil.sh | sudo bash
 
-
+# Add our devmode ENV
+echo "export KALABOX_DEV=true" > ~/.profile
+source ~/.profile
