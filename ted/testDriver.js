@@ -67,6 +67,33 @@ Context.prototype.snapshot = function(id) {
 };
 
 /*
+ * Revert to an existing snapshot.
+ */
+Context.prototype.revert = function(id) {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.findSnapshotThrows(id)
+    .then(function(snapshot) {
+      return snapshot.revert();
+    });
+  });
+};
+
+/*
+ * Stop and then start vm.
+ */
+Context.prototype.restart = function() {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.stop()
+    .then(function() {
+      self.machine.start();
+    }) ;
+  });
+dd
+};
+
+/*
  * Run a script.
  */
 Context.prototype.run = function(s) {
@@ -80,7 +107,9 @@ Context.prototype.run = function(s) {
  * Returns the chains promise.
  */
 Context.prototype.promise = function() {
-  return this.p;
+  var p = this.p;
+  this.p = Promise.resolve();
+  return p;
 };
 
 /*
