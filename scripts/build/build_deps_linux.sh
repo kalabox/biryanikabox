@@ -104,5 +104,3 @@ curl http://jxcore.com/xil.sh | sudo bash
 
 # Add our devmode ENV
 echo "export KALABOX_DEV=true" > $HOME/.bashrc
-sleep 1
-source $HOME/.bashrc
