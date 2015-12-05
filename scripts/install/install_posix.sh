@@ -28,19 +28,19 @@ else
 fi
 
 # Checkout the kalabox project
-echo "Intalling Kalabox from commit ${WORKING_BRANCH}..."
-echo "With the following backends and apps..."
-if [ -f $HOME/.kalabox/development.json ]; then
-  cat $HOME/.kalabox/development.json
-else
-  cat $HOME/.kalabox/development.json
-fi
 cd $HOME
 git clone https://github.com/kalabox/kalabox.git
 cd kalabox
 git checkout $WORKING_BRANCH
 
-# npm install
+# Install the backends
+echo "Intalling Kalabox from commit ${WORKING_BRANCH}..."
+echo "With the following backends and apps..."
+if [ -f $HOME/.kalabox/development.json ]; then
+  cat $HOME/.kalabox/development.json
+else
+  cat $HOME/kalabox/development.json
+fi
 npm install
 
 # Symlink the binary
