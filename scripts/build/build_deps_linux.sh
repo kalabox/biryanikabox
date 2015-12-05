@@ -104,3 +104,6 @@ curl http://jxcore.com/xil.sh | sudo bash
 
 # Add our devmode ENV
 echo "export KALABOX_DEV=true" > $HOME/.bashrc
+
+# Want to exit so our user will get the correct ENV in another shell
+exit 0
