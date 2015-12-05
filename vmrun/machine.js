@@ -50,25 +50,8 @@ Machine.prototype.__exec = function(cmd) {
     ps.stdout.on('data', function(data) {
       buffer += data;
     });
-    ps.stderr.on('data', function(data) {
-      if (_.contains(data, 'JackRouter')) {
-
-      } else if (_.contains(data, 'Serato')) {
-
-      } else {
-        errBuffer += data;
-      }
-    });
-    ps.stderr.on('data', function(data) {
-      if (_.contains(data, 'JackRouter')) {
-
-      } else if (_.contains(data, 'SeratoVirtualAudio')) {
-
-      } else if (_.contains(data, 'Flip4Mac')) {
-        
-      } else {
-        debug('ERR: %s', data);
-      }
+    ps.stderr.on('error', function(err) {
+      cb(err);
     });
     ps.on('exit', function(code, signal) {
       debug('Exit: %s', code);
@@ -76,7 +59,12 @@ Machine.prototype.__exec = function(cmd) {
         debug('STDOUT: ' + buffer);
         cb(null, buffer);
       } else {
-        var err = new Error('Non-zero exit code: ' + code + ' ' + errBuffer);
+        var data = {
+          code: code,
+          stdout: buffer,
+          stderr: errBuffer
+        };
+        var err = new Error(JSON.stringify(data));
         err.code = code;
         cb(err);
       }
@@ -272,7 +260,7 @@ Machine.prototype.getFileRead = function(remoteFile) {
   .then(function(localFile) {
     // Read file.
     return Promise.fromNode(function(cb) {
-      fs.readFile(localFile, cb);
+      fs.readFile(localFile, {encoding: 'utf8'}, cb);
     })
     // Remove file.
     .tap(function() {
@@ -289,6 +277,8 @@ Machine.prototype.getFileRead = function(remoteFile) {
 Machine.prototype.script = function(s) {
   // Save reference.
   var self = this;
+  // Get uuid as an id for this script run.
+  var id = uuid.v4();
   // Check to see if 's' is a file that exists.
   return Promise.fromNode(function(cb) {
     fs.exists(s, function(exists) {
@@ -303,7 +293,7 @@ Machine.prototype.script = function(s) {
       return s;
     } else {
       // 's' is a script string, write it to a temp temp file.
-      var file = path.join(os.tmpdir(), uuid.v1() + '.sh');
+      var file = path.join(os.tmpdir(), id + '.sh');
       return Promise.fromNode(function(cb) {
         fs.writeFile(file, s, {mode: '0500'}, cb);
       })
@@ -316,8 +306,6 @@ Machine.prototype.script = function(s) {
     return self.putFile(file)
     // Run the script in the vm.
     .then(function() {
-      // Get uuid as an id for this script run.
-      var id = uuid.v1();
       // Create filenames for the script run output.
       var stdout = self.toGuestFile(id + '-stdout.log');
       var stderr = self.toGuestFile(id + '-stderr.log');
@@ -334,6 +322,17 @@ Machine.prototype.script = function(s) {
           '/bin/bash',
           cmd
         ]
+      })
+      .catch(function(err) {
+        var result = new Result({
+          machine: self,
+          stdout: stdout,
+          stderr: stderr
+        });
+        return result.stderr()
+        .then(function(data) {
+          throw new VError(err, JSON.stringify(data));
+        });
       })
       // Return a result object.
       .then(function() {
