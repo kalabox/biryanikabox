@@ -21,7 +21,6 @@ REM
 REM Some helpful things
 SET DEFAULT_BRANCH=v0.10
 SET OLDDIR=%~dp0
-ECHO %OLDDIR%
 
 REM Define the correct branch/commit/tag
 REM and then get the codes
@@ -30,9 +29,9 @@ IF "%1"=="" (
 ) ELSE (
   SET WORKING_BRANCH=%1
 )
-CD %USERPROFILE%
+CHDIR %USERPROFILE%
 git clone https://github.com/kalabox/kalabox.git
-CD kalabox
+CHDIR kalabox
 git checkout %WORKING_BRANCH%
 
 REM Figure out what we are installing
@@ -46,8 +45,8 @@ IF EXIST "%USERPROFILE%\.kalabox\development.json" (
 npm install
 
 REM Get kbox working better
-setx Path "%Path%;%USERPROFILE%\kalabox\bin"
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable('Path', ""$env:Path;$env:USERPROFILE\kalabox\bin""", [EnvironmentVariableTarget]::User)";
 
-CD %OLDDIR%
+CHDIR %OLDDIR%
 
 PAUSE
