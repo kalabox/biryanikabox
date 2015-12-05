@@ -42,7 +42,7 @@ IF EXIST "%USERPROFILE%\.kalabox\development.json" (
 ) ELSE (
   TYPE %USERPROFILE%\kalabox\development.json
 )
-npm install
+CALL npm install
 
 REM Get kbox working better
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable('Path', ""$env:Path;$env:USERPROFILE\kalabox\bin""", [EnvironmentVariableTarget]::User)";
