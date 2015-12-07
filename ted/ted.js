@@ -63,7 +63,9 @@ Promise.try(function() {
       res.setEncoding('utf8');
       res.on('data', function(data) {
         var json = JSON.parse(data);
-        console.log(JSON.stringify(json, null, '  '));
+        if (!json['ping']) {
+          console.log(JSON.stringify(json, null, '  '));
+        }
       });
       res.on('error', cb);
       res.on('end', cb);

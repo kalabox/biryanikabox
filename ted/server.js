@@ -38,11 +38,15 @@ app.post('/test/', function(req, res) {
     }
   })
   .then(function(batch) {
+    var interval = setInterval(function() {
+      res.write(JSON.stringify({ping: new Date()}));
+    }, 30 * 1000);
     batch.on('progress', function(evt) {
       res.write(JSON.stringify(evt));
     });
     batch.run()
     .then(function() {
+      clearInterval(interval);
       res.end();
     });
   });
