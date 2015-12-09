@@ -16,12 +16,37 @@ ted.describe('kalabox', function(tag) {
     return vm.revert('install').start().promise();
   });
 
-  it('should install git', function() {
-    return vm.run('git version').promise();
+  describe('[kbox version]', function() {
+    it('should work', function() {
+      return vm.run('kbox version').promise();
+    });
   });
 
-  it('should install npm', function() {
-    return vm.run('npm version').promise();
+  describe('[kbox config]', function() {
+    it('should work', function() {
+      return vm.run('kbox config').promise();
+    });
   });
+
+  describe('[kbox update]', function() {
+    it('should provision', function() {
+      return vm.run('echo "kalabox" | sudo -S kbox update')
+    });
+  });
+
+  /*describe('[pantheon site]', function() {
+    it('should create', function() {
+      var cmd = [
+        'kbox', 'create', 'pantheon',
+        '--',
+        '--email', 'ben@kalamuna.com',
+        '--password', 'hungry1sB3n',
+        '--site', 'playbox',
+        '--env', 'dev',
+        '--name', 'playbox'
+      ].join(' ');
+      return vm.run(cmd).promise();
+    });
+  });*/
 
 });

@@ -275,6 +275,7 @@ Machine.prototype.getFileRead = function(remoteFile) {
  * Run a script in the vm.
  */
 Machine.prototype.script = function(s) {
+
   // Save reference.
   var self = this;
   // Get uuid as an id for this script run.
@@ -292,12 +293,24 @@ Machine.prototype.script = function(s) {
       // 's' is a file that exists.
       return s;
     } else {
-      // 's' is a script string, write it to a temp temp file.
+      // 's' is a script string, write it to a temp file.
       var file = path.join(os.tmpdir(), id + '.sh');
-      return Promise.fromNode(function(cb) {
-        fs.writeFile(file, s, {mode: '0500'}, cb);
+      var writer = fs.createWriteStream(file, {mode: '0500'});
+      var lines = [
+        '#!/bin/bash\n',
+        '. ~/.profile\n',
+        s + '\n'
+      ];
+      return Promise.each(lines, function(line) {
+        return Promise.fromNode(function(cb) {
+          writer.write(line, cb);
+        });
       })
-      .delay(5 * 1000)
+      .then(function() {
+        return Promise.fromNode(function(cb) {
+          writer.close(cb);
+        });
+      })
       .return(file);
     }
   })
@@ -329,8 +342,15 @@ Machine.prototype.script = function(s) {
           stdout: stdout,
           stderr: stderr
         });
-        return result.stderr()
-        .then(function(data) {
+        return Promise.all([
+          result.stdout(),
+          result.stderr()
+        ])
+        .spread(function(stdout, stderr) {
+          var data = {
+            stderr: stderr,
+            stdout: stdout
+          };
           throw new VError(err, JSON.stringify(data));
         });
       })
@@ -338,8 +358,8 @@ Machine.prototype.script = function(s) {
       .then(function() {
         return new Result({
           machine: self,
-          stdout: stdout,
-          stderr: stderr
+          stderr: stderr,
+          stdout: stdout
         });
       });
     });

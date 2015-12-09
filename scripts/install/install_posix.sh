@@ -15,6 +15,9 @@
 #  p: kalabox
 #
 
+# Source profile
+. ~/.profile
+
 # Set some things in the environment for us to use
 SUDO_PASSWORD='kalabox'
 DEFAULT_BRANCH='v0.10'

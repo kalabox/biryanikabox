@@ -9,6 +9,7 @@ var EventEmitter = require('events').EventEmitter;
 var env = require('./env.js');
 var yaml = require('./yaml.js');
 var fs = require('fs');
+var JSONStream = require('json-stream');
 
 /*
  * Constructor: a batch is a group of tests run together.
@@ -56,17 +57,17 @@ Batch.prototype.run = function() {
     ps.stderr.on('data', function(data) {
       console.log('ERR: %s',data);
     });
+    var eventStream = JSONStream();
+    ps.stdout.pipe(eventStream);
     // Handle lines of data coming back from child process.
-    ps.stdout.on('data', function(data) {
-      // Parse line data.
-      var parts = JSON.parse(data);
+    eventStream.on('data', function(data) {
       // Validate parsing of the data.
-      if (parts.length !== 2) {
+      if (data.length !== 2) {
         throw new Error(util.format('Invalid event data: "%s"', data));
       }
       // Build event object.
-      var key = parts[0];
-      var val = parts[1];
+      var key = data[0];
+      var val = data[1];
       var evt = {};
       evt[key] = val;
       if (key === 'end') {

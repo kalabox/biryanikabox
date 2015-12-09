@@ -122,7 +122,10 @@ Context.prototype.install = function() {
     var cmds = [
       '../scripts/build/build_deps_linux.sh',
       'git version',
-      'npm version'
+      'npm version',
+      'env | grep KALABOX_DEV',
+      '../scripts/install/install_posix.sh',
+      'kbox version'
     ];
     return Promise.each(cmds, function(cmd) {
       return self.machine.script(cmd);
@@ -153,6 +156,18 @@ Context.prototype.cleanup = function() {
   self.p = self.p.finally(function() {
     // Stop machine.
     return self.machine.stop()
+    // Create a last snapshot.
+    .finally(function() {
+      return self.machine.findSnapshot('last')
+      .then(function(snapshot) {
+        if (snapshot) {
+          return snapshot.remove();
+        }
+      })
+      .then(function() {
+        return self.machine.createSnapshot('last');
+      });
+    })
     // Cleanup snapshots created within context.
     .finally(function() {
       return Promise.each(self.snapshots, function(snapshotName) {

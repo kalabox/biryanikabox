@@ -1,5 +1,5 @@
 name: just-some-testing
 tags:
-  - ubuntu-14.04:clean
+  - ubuntu-14.04_new:clean
 files:
  - ./testInstall.js
