@@ -371,6 +371,16 @@ Machine.prototype.script = function(s) {
 };
 
 /*
+ * Gets the IP of the vm.
+ */
+Machine.prototype.ip = function() {
+  return this.__execVmrun('getGuestIPAddress')
+  .catch(function(err) {
+    throw new VError(err, 'Error reading ip.');
+  });
+};
+
+/*
  * Create a snapshot of the vm.
  */
 Machine.prototype.createSnapshot = function(name) {
