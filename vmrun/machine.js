@@ -210,7 +210,7 @@ Machine.prototype.wait = function(user) {
       return self.script('which echo')
       .catch(function(err) {
         if (counter < 6) {
-          return delay(counter * 10 * 1000)
+          return Promise.delay(counter * 10 * 1000)
           .then(function() {
             return rec(counter + 1);
           });
