@@ -30,7 +30,7 @@ ted.describe('kalabox', function(tag) {
 
   describe('[kbox update]', function() {
     it('should provision', function() {
-      return vm.run('echo "kalabox" | sudo -S kbox update')
+      return vm.run('echo "kalabox" | sudo -S kbox update').promise();
     });
   });
 

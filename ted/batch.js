@@ -42,7 +42,7 @@ Batch.prototype.run = function() {
       'mocha',
       '-R', self.reporter,
       '--require', './globals.js',
-      '--timeout', 60 * 60 * 1000
+      '--timeout', 20 * 60 * 1000
     ];
     // Add files to test.
     cmd = cmd.concat(self.files);

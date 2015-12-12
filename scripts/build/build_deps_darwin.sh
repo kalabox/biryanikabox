@@ -28,7 +28,7 @@ elif [ "${MAJOR_MAC_VERSION}" == "10.10" ]; then
   CLI_PACKAGE="Command Line Tools (OS X 10.10).pkg"
 elif [ "${MAJOR_MAC_VERSION}" == "10.11" ]; then
   CLI_BASE_NAME=Command_Line_Tools_OS_X_10.11_for_Xcode_7.2.dmg
-  CLI_PACKAGE="Command Line Tools (OS X 10.10).pkg"
+  CLI_PACKAGE="Command Line Tools (OS X 10.11).pkg"
 fi
 
 # Make sure /usr/local/bin exists

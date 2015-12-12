@@ -12,6 +12,7 @@ var Result = require('./result.js');
 var User = require('./user.js');
 var Snapshot = require('./snapshot.js');
 var VError = require('verror');
+var bill = require('kalabox-bill');
 
 var debugOn = false;
 function debug() {
@@ -28,6 +29,45 @@ function Machine(config) {
   this.path = config.path;
   this.user = new User('kalabox', 'kalabox');
 }
+
+/*
+ * Run a script in vm using bill daemon.
+ */
+Machine.prototype.script = function(cmd, opts) {
+  opts = opts || {};
+  var port = opts.port || 1989;
+  var stdout = opts.stdout || false;
+  var stderr = opts.stderr || false;
+  var self = this;
+  return self.ip()
+  .then(function(ip) {
+    return Promise.fromNode(function(cb) {
+      var client = new bill.client(ip, port);
+      client.on('exit', function(data) {
+        if (data.code !== 0) {
+          cb(new Error(data.code));
+        }
+      });
+      client.on('stdout', function(data) {
+        if (stdout) {
+          process.stdout.write(data);
+        }
+      });
+      client.on('stderr', function(data) {
+        if (stderr) {
+          process.stdout.write(data);
+        }
+      });
+      client.sh(cmd)
+      .then(function() {
+        cb();
+      });
+    });
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error running bill: %s', cmd);
+  });
+};
 
 /*
  * Execute a shell command.
@@ -141,7 +181,7 @@ Machine.prototype.start = function(opts) {
   // Start the vm.
   return self.__start(opts)
   // Wait a short duration.
-  .delay(5 * 1000)
+  .delay(10 * 1000)
   // Wait for vm to become responsive.
   .then(function() {
     return self.wait();
@@ -161,28 +201,25 @@ Machine.prototype.stop = function() {
 };
 
 /*
- * Darwin specific wait.
- */
-Machine.prototype.waitDarwin = function(user) {
-  return this.__execVmrun('runProgramInGuest', {
-    user: user,
-    args: ['/bin/echo', 'foo']
-  });
-};
-
-/*
  * Wait for vm to become responsive, then fulfill promise.
  */
 Machine.prototype.wait = function(user) {
   var self = this;
   return Promise.try(function() {
-    var os = process.platform;
-    switch (os) {
-      case 'darwin':
-        return self.waitDarwin(user);
-      default:
-        throw new Error('OS not supported: ' + os);
+    var rec = function(counter) {
+      return self.script('which echo')
+      .catch(function(err) {
+        if (counter < 6) {
+          return Promise.delay(counter * 10 * 1000)
+          .then(function() {
+            return rec(counter + 1);
+          });
+        } else {
+          throw err;
+        }
+      });
     };
+    return rec(1);
   })
   .catch(function(err) {
     throw new VError(err, 'Error waiting for vm: ' + self.path);
@@ -274,7 +311,7 @@ Machine.prototype.getFileRead = function(remoteFile) {
 /*
  * Run a script in the vm.
  */
-Machine.prototype.script = function(s) {
+Machine.prototype.script_old = function(s) {
 
   // Save reference.
   var self = this;
@@ -367,6 +404,19 @@ Machine.prototype.script = function(s) {
   // Wrap errors.
   .catch(function(err) {
     throw new VError(err, 'Error running script: "%s"', s);
+  });
+};
+
+/*
+ * Gets the IP of the vm.
+ */
+Machine.prototype.ip = function() {
+  return this.__execVmrun('getGuestIPAddress')
+  .then(function(ip) {
+    return ip.trim();
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error reading ip.');
   });
 };
 
