@@ -30,7 +30,7 @@
     "fs-extra": "^0.18.2",
     "js-yaml": "^3.4.6",
     "json-stream": "^1.0.0",
-    "kalabox-bill": "^0.1.6",
+    "kalabox-bill": "^0.1.9",
     "lodash": "^3.10.1",
     "properties": "^1.2.1",
     "rimraf": "~2.2.8",

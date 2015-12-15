@@ -105,6 +105,48 @@ Machine.prototype.__script = function(cmd, opts) {
   });
 };
 
+Machine.prototype.copy = function(file, opts) {
+
+  opts = opts || {};
+  var port = opts.port || 1989;
+  var stdout = opts.stdout || false;
+  var stderr = opts.stderr || false;
+  var user = opts.user || 'kalabox';
+  var password = opts.password || 'kalabox';
+  var self = this;
+  return self.ip()
+  .then(function(ip) {
+    return Promise.fromNode(function(cb) {
+      var client = new bill.client(ip, port);
+      var buffer = '';
+      var bufferErr = '';
+      client.on('exit', function(data) {
+        if (data.code !== 0) {
+          var msg = JSON.stringify({
+            code: data.code,
+            stderr: bufferErr,
+            stdout: buffer
+          });
+          cb(new Error(msg));
+        }
+      });
+      client.on('stdout', function(data) {
+        buffer += data;
+      });
+      client.on('stderr', function(data) {
+        bufferErr += data;
+      });
+      client.copy({file: file})
+      .then(function() {
+        cb();
+      });
+    });
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error copying file to bill: %s', file);
+  });
+};
+
 /*
  * Execute a shell command.
  */

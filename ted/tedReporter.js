@@ -24,29 +24,25 @@ function List(runner) {
   var self = this;
   var total = runner.total;
 
-  var oldWrite = process.stdout.write;
-
-  process.stdout.write = function() {};
-
   runner.on('start', function() {
     //global.events.emit('start', {total: total});
-    oldWrite(JSON.stringify(['start7', { total: total }]));
+    console.log(JSON.stringify(['start7', { total: total }]));
   });
 
   runner.on('pass', function(test) {
-    oldWrite(JSON.stringify(['pass7', clean(test)]));
+    console.log(JSON.stringify(['pass7', clean(test)]));
   });
 
   runner.on('fail', function(test, err) {
     test = clean(test);
     test.err = err.message;
     test.stack = err.stack || null;
-    oldWrite(JSON.stringify(['fail7', test]));
+    console.log(JSON.stringify(['fail7', test]));
   });
 
   runner.on('end', function() {
-    //process.stdout.write(JSON.stringify(['end7', self.stats]));
-    oldWrite(JSON.stringify(['end', self.stats]));
+    process.stdout.write(JSON.stringify(['end7', self.stats]));
+    //oldWrite(JSON.stringify(['end', self.stats]));
   });
 }
 

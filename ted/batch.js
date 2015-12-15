@@ -48,7 +48,9 @@ Batch.prototype.run = function() {
     cmd = cmd.concat(self.files);
     cmd = cmd.join(' ');
     // Execute!
-    return exec(cmd);
+    return exec(cmd, {
+      maxBuffer: 8 * 1000 * 1024
+    });
   })
   // Handle events and end.
   .then(function(ps) {
