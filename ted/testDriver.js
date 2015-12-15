@@ -18,7 +18,10 @@ function Context(tag, opts) {
     self.platform = 'darwin';
   } else if (_.contains(tag, 'ubuntu')) {
     self.platform = 'linux';
-  } else {
+  } else if (_.contains(tag, 'win')) {
+    self.platform = 'win32';
+  }
+  else {
     throw new Error('Could not infer platform from tag: ' + tag);
   }
   // First part of tag is machine.
@@ -131,6 +134,8 @@ Context.prototype.install = function() {
         return self.machine.script('../scripts/build/build_deps_darwin.sh');
       } else if (self.platform === 'linux') {
         return self.machine.script('../scripts/build/build_deps_linux.sh');
+      } else if (self.platform === 'win32') {
+        return self.machine.script('../scripts/build/build_deps_win32.ps1');
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }
@@ -149,6 +154,8 @@ Context.prototype.install = function() {
         return self.machine.script('../scripts/install/install_posix.sh');
       } else if (self.platform === 'linux') {
         return self.machine.script('../scripts/install/install_posix.sh');
+      } else if (self.platform === 'linux') {
+        return self.machine.script('../scripts/install/install_win32.bat');
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }

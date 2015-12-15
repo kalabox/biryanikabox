@@ -14,7 +14,11 @@ module.exports = function(grunt) {
       js: {
         src: [
           '*.js',
-          'lib/*.js'
+          'ted/**/*,js',
+          'vmrun/**/*.js',
+          'yaml/**/*.js',
+          '*/.js',
+          'Gruntfile.js'
         ]
       }
     },

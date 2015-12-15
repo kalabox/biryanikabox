@@ -1,3 +1,5 @@
+'use strict';
+
 var vmrun = require('../vmrun.js');
 var Promise = require('bluebird');
 var uuid = require('uuid');
@@ -43,7 +45,7 @@ vmrun.findMachine('ubuntu14.04-x64-clean')
       if (!snapshot) {
         throw new Error('Snapshot not found: ' + id);
       }
-      console.log('Stopping vm.')
+      console.log('Stopping vm.');
       return machine.stop()
       .then(function() {
         console.log('Reverting snapshot: %s', id);
