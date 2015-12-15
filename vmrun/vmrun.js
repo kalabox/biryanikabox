@@ -3,8 +3,6 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var path = require('path');
-var fs = require('fs');
-var os = require('os');
 var Machine = require('./machine.js');
 var User = require('./user.js');
 var VError = require('verror');
@@ -46,7 +44,7 @@ VMRun.prototype.listMachinesDarwin = function() {
   // Filter out properties without a config.
   .then(function(data) {
     return _.filter(_.values(data), function(obj) {
-      return !!obj.config && !!obj.DisplayName; 
+      return !!obj.config && !!obj.DisplayName;
     });
   })
   // Map to Machine objects.

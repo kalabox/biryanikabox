@@ -19,6 +19,20 @@ function debug() {
   if (debugOn) {
     console.log.apply(_.toArray(arguments));
   }
+}
+
+/*
+ * Get directory for machine executable.
+ */
+var getVMRunBinPath = function() {
+
+  // Return exec based on path
+  switch (process.platform) {
+    case 'win32': return null;
+    case 'darwin': return '/Applications/VMware\ Fusion.app/Contents/Library';
+    case 'linux': return null;
+  }
+
 };
 
 /*
@@ -62,8 +76,6 @@ Machine.prototype.__script = function(cmd, opts) {
   var port = opts.port || 1989;
   var stdout = opts.stdout || true;
   var stderr = opts.stderr || true;
-  var user = opts.user || 'kalabox';
-  var password = opts.password || 'kalabox';
   var self = this;
   return self.ip()
   .then(function(ip) {
@@ -129,7 +141,7 @@ Machine.prototype.__exec = function(cmd) {
     ps.stderr.on('error', function(err) {
       cb(err);
     });
-    ps.on('exit', function(code, signal) {
+    ps.on('exit', function(code/*, signal*/) {
       debug('Exit: %s', code);
       if (code === 0) {
         debug('STDOUT: ' + buffer);
@@ -153,6 +165,17 @@ Machine.prototype.__exec = function(cmd) {
  */
 Machine.prototype.__execVmrun = function(action, opts) {
   var self = this;
+
+  // Add common vmrun executable path locations to the path
+  // since vmrun is not commonly in the path by default
+  var pathString = (process.platform === 'win32') ? 'Path' : 'PATH';
+  var pathSep = (process.platform === 'win32') ? ';' : ':';
+  var vmRunPath = getVMRunBinPath();
+  if (!_.startsWith(process.env.path, vmRunPath)) {
+    var newPath = [vmRunPath, process.env[pathString]].join(pathSep);
+    process.env[pathString] = newPath;
+    console.log(process.env);
+  }
 
   // Get user.
   var user = _.get(opts, 'user') || self.user;
@@ -240,7 +263,7 @@ Machine.prototype.stop = function() {
 /*
  * Wait for vm to become responsive, then fulfill promise.
  */
-Machine.prototype.wait = function(user) {
+Machine.prototype.wait = function(/*user*/) {
   var self = this;
   return Promise.try(function() {
     var rec = function(counter) {
@@ -326,8 +349,6 @@ Machine.prototype.getFile = function(remoteFile, localDir) {
  */
 Machine.prototype.getFileRead = function(remoteFile) {
   var self = this;
-  // Get local directory for the file.
-  var localDir = os.tmpdir();
   // Get file from vm.
   return self.getFile(remoteFile, os.tmpdir())
   // Read file, remove file, and return file contents.
@@ -348,7 +369,7 @@ Machine.prototype.getFileRead = function(remoteFile) {
 /*
  * Run a script in the vm.
  */
-Machine.prototype.script_old = function(s) {
+Machine.prototype.scriptOld = function(s) {
 
   // Save reference.
   var self = this;
@@ -484,6 +505,7 @@ Machine.prototype.listSnapshots = function() {
     var snapshots = _.map(names, function(name) {
       return new Snapshot(name, self);
     });
+    console.log(snapshots);
     return snapshots;
   })
   // Wrap errors.
