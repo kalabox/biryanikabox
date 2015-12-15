@@ -13,7 +13,7 @@ ted.describe('kalabox', function(tag) {
   });
 
   beforeEach(function() {
-    return vm.revert('install').start().promise();
+    //return vm.revert('install').start().promise();
   });
 
   describe('[kbox version]', function() {
@@ -30,7 +30,9 @@ ted.describe('kalabox', function(tag) {
 
   describe('[kbox update]', function() {
     it('should provision', function() {
-      return vm.run('echo "kalabox" | sudo -S kbox update').promise();
+      return vm.run('echo "kalabox" | sudo -S kbox update')
+      .run('kbox down')
+      .promise();
     });
   });
 

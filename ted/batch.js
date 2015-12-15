@@ -63,19 +63,20 @@ Batch.prototype.run = function() {
     eventStream.on('data', function(data) {
       // Validate parsing of the data.
       if (data.length !== 2) {
-        throw new Error(util.format('Invalid event data: "%s"', data));
+        self.emit('foo', data);
+      } else {
+        // Build event object.
+        var key = data[0];
+        var val = data[1];
+        var evt = {};
+        evt[key] = val;
+        if (key === 'end') {
+          // Set result here so it can be returned with promise.
+          result = val;
+        }
+        // Emit progress event.
+        self.emit('progress', evt);
       }
-      // Build event object.
-      var key = data[0];
-      var val = data[1];
-      var evt = {};
-      evt[key] = val;
-      if (key === 'end') {
-        // Set result here so it can be returned with promise.
-        result = val;
-      }
-      // Emit progress event.
-      self.emit('progress', evt);
     });
     // Fulfill promise based on child process behavior.
     return Promise.fromNode(function(cb) {

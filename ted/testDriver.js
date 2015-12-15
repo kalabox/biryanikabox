@@ -14,6 +14,13 @@ function Context(tag, opts) {
   // Split tag into parts.
   var parts = tag.split(':');
   self.tag = tag;
+  if (_.contains(tag, 'osx')) {
+    self.platform = 'darwin';
+  } else if (_.contains(tag, 'ubuntu')) {
+    self.platform = 'linux';
+  } else {
+    throw new Error('Could not infer platform from tag: ' + tag);
+  }
   // First part of tag is machine.
   self.machineName = parts[0];
   // Second part of tag is snapshot.
@@ -119,22 +126,41 @@ Context.prototype.run = function(s) {
 Context.prototype.install = function() {
   var self = this;
   return self.chain(function() {
-    var cmds = [
-      '../scripts/build/build_deps_linux.sh',
-      'git version',
-      'npm version',
-      'env | grep KALABOX_DEV',
-      '../scripts/install/install_posix.sh',
-      'kbox version'
-    ];
-    return Promise.each(cmds, function(cmd) {
-      return self.machine.script(cmd);
+    return Promise.try(function() {
+      if (self.platform === 'darwin') {
+        return self.machine.script('../scripts/build/build_deps_darwin.sh');
+      } else if (self.platform === 'linux') {
+        return self.machine.script('../scripts/build/build_deps_linux.sh');
+      } else {
+        throw new Error('Platform not implemented: ' + self.tag);
+      }
     })
     .then(function() {
-      return self.machine.createSnapshot('install')
+      return self.machine.script('git version')
+      .then(function() {
+        return self.machine.script('npm version');
+      })
+      .then(function() {
+        return self.machine.script('env | grep KALABOX_DEV');
+      });
+    })
+    .then(function() {
+      if (self.platform === 'darwin') {
+        return self.machine.script('../scripts/install/install_posix.sh');
+      } else if (self.platform === 'linux') {
+        return self.machine.script('../scripts/install/install_posix.sh');
+      } else {
+        throw new Error('Platform not implemented: ' + self.tag);
+      }
+    })
+    .then(function() {
+      return self.machine.script('kbox version');
+    })
+    .then(function() {
+      /*return self.machine.createSnapshot('install')
       .then(function() {
         self.snapshots.push('install');
-      });
+      });*/
     });
   });
 };

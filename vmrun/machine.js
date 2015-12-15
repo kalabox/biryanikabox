@@ -34,31 +34,67 @@ function Machine(config) {
  * Run a script in vm using bill daemon.
  */
 Machine.prototype.script = function(cmd, opts) {
+  var self = this;
+  return Promise.fromNode(function(cb) {
+    fs.exists(cmd, function(exists) {
+      cb(null, exists);
+    });
+  })
+  .then(function(exists) {
+    if (exists) {
+      return Promise.fromNode(function(cb) {
+        fs.readFile(cmd, {encoding: 'utf8'}, cb);
+      });
+    } else {
+      return cmd;
+    }
+  })
+  .then(function(_cmd) {
+    return self.__script(_cmd, opts);
+  });
+};
+
+Machine.prototype.__script = function(cmd, opts) {
+
+  console.log('CMD: ' + cmd);
+
   opts = opts || {};
   var port = opts.port || 1989;
-  var stdout = opts.stdout || false;
-  var stderr = opts.stderr || false;
+  var stdout = opts.stdout || true;
+  var stderr = opts.stderr || true;
+  var user = opts.user || 'kalabox';
+  var password = opts.password || 'kalabox';
   var self = this;
   return self.ip()
   .then(function(ip) {
     return Promise.fromNode(function(cb) {
       var client = new bill.client(ip, port);
+      var buffer = '';
+      var bufferErr = '';
       client.on('exit', function(data) {
         if (data.code !== 0) {
-          cb(new Error(data.code));
+          var msg = JSON.stringify({
+            code: data.code,
+            stderr: bufferErr,
+            stdout: buffer
+          });
+          cb(new Error(msg));
         }
       });
       client.on('stdout', function(data) {
+        buffer += data;
         if (stdout) {
           process.stdout.write(data);
         }
       });
       client.on('stderr', function(data) {
+        bufferErr += data;
         if (stderr) {
           process.stdout.write(data);
         }
       });
-      client.sh(cmd)
+      var fullCmd = cmd;
+      client.sh(fullCmd)
       .then(function() {
         cb();
       });
@@ -164,7 +200,8 @@ Machine.prototype.__execVmrun = function(action, opts) {
 Machine.prototype.__start = function(opts) {
   var self = this;
   opts = opts || {};
-  opts.gui = _.get(opts, 'gui') || false;
+  opts.gui = true;
+  //opts.gui = _.get(opts, 'gui') || false;
   return self.__execVmrun('start', {
     args: opts.gui ? ['gui'] : ['nogui']
   })

@@ -16,7 +16,7 @@
 #
 
 # Source profile
-. ~/.profile
+source ~/.profile
 
 # Set some things in the environment for us to use
 SUDO_PASSWORD='kalabox'

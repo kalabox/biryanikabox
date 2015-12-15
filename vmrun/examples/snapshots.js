@@ -4,12 +4,13 @@ var uuid = require('uuid');
 var assert = require('assert');
 
 // List vms.
-vmrun.listMachines()
-.then(function(machines) {
-  var user = vmrun.user('kalabox', '@N*4Hyp@t2UR');
-  var machine = machines[0];
+vmrun.findMachine('ubuntu14.04-x64-clean')
+.then(function(machine) {
+  console.log(typeof machine);
+  var user = vmrun.user('kalabox', 'kalabox');
+  //var machine = machines[0];
   var id = uuid.v4();
-  machine.user(user);
+  machine.setUser(user);
   // Create snapshot.
   return Promise.try(function() {
     console.log('Creating snapshot: %s.', id);
