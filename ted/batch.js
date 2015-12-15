@@ -1,5 +1,6 @@
 'use strict';
 
+var path = require('path');
 var _ = require('lodash');
 var Promise = require('bluebird');
 var exec = require('child_process').exec;
@@ -37,9 +38,12 @@ Batch.prototype.run = function() {
   })
   // Execute mocha cli command.
   .then(function() {
+    // Get path to mocha bin
+    var binDir = path.resolve(__dirname, '..', 'node_modules', '.bin');
+    var mocha = path.join(binDir, 'mocha');
     // Build command.
     var cmd = [
-      'mocha',
+      mocha,
       '-R', self.reporter,
       '--require', './globals.js',
       '--timeout', 20 * 60 * 1000
