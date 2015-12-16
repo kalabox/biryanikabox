@@ -18,7 +18,6 @@ exports = module.exports = List;
  */
 function List(runner, opts) {
   Base.call(this, runner);
-  throw new Error(JSON.stringify(opts));
 
   var self = this;
   var total = runner.total;
