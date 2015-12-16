@@ -30,8 +30,9 @@ ted.describe('kalabox', function(tag) {
 
   describe('[kbox update]', function() {
     it('should provision', function() {
-      return vm.run('echo "kalabox" | sudo -S kbox update')
-      .run('kbox down')
+      return vm.run('echo "kalabox" | sudo -S kbox version')
+      .run('kbox update')
+      .run('kbox up && kbox down')
       .promise();
     });
   });
