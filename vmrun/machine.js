@@ -64,13 +64,13 @@ Machine.prototype.script = function(cmd, opts) {
     }
   })
   .then(function(_cmd) {
-    return self.__script(_cmd, opts);
+    return self.__script({cmd: _cmd}, opts);
   });
 };
 
 Machine.prototype.__script = function(cmd, opts) {
 
-  console.log('CMD: ' + cmd);
+  console.log('CMD: ' + JSON.stringify(cmd));
 
   opts = opts || {};
   var port = opts.port || 1989;
