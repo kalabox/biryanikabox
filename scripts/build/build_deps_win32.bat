@@ -18,6 +18,4 @@ REM
 REM It also assumed you have disabled UAC so we can run things non-interactively
 REM
 
-REM PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\kalabox\AppData\Local\Temp\build_deps_win32.ps1"
-
-PAUSE
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\kalabox\AppData\Local\Temp\build_deps_win32.ps1"
