@@ -39,6 +39,8 @@ var getVMRunBinPath = function() {
  * Constructor.
  */
 function Machine(config) {
+  this.platform = config.platform;
+  this.release = config.release;
   this.name = config.name;
   this.path = config.path;
   this.user = new User('kalabox', 'kalabox');
@@ -147,10 +149,6 @@ Machine.prototype.copy = function(file, opts) {
 
   opts = opts || {};
   var port = opts.port || 1989;
-  var stdout = opts.stdout || false;
-  var stderr = opts.stderr || false;
-  var user = opts.user || 'kalabox';
-  var password = opts.password || 'kalabox';
   var self = this;
   return self.ip()
   .then(function(ip) {
@@ -335,7 +333,9 @@ Machine.prototype.wait = function(/*user*/) {
   var self = this;
   return Promise.try(function() {
     var rec = function(counter) {
-      return self.script('which echo')
+      var whicher = (self.platform === 'win32') ? 'where' : 'which';
+      var shell = (self.platform === 'win32') ? 'cmd.exe' : 'bash';
+      return self.script([whicher, shell].join(' '))
       .catch(function(err) {
         if (counter < 6) {
           return Promise.delay(counter * 10 * 1000)

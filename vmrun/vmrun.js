@@ -43,15 +43,48 @@ VMRun.prototype.listMachinesDarwin = function() {
   })
   // Filter out properties without a config.
   .then(function(data) {
-    return _.filter(_.values(data), function(obj) {
+
+    // Get a list of machines
+    var rawMachines = _.filter(_.values(data), function(obj) {
       return !!obj.config && !!obj.DisplayName;
     });
+
+    // Get a list of other data
+    var otherData = _.filter(_.values(data), function(obj) {
+      return !!obj.field0 && !!obj.id;
+    });
+
+    // Add the release and platform to each machine and then return the result
+    return _.map(rawMachines, function(machine) {
+
+      // Grab the release info from the other data
+      machine.release = _.result(_.find(otherData, function(datum) {
+        return machine.config === datum.id;
+      }), 'field0.value');
+
+      // Use the release info to infer a platform
+      if (_.contains(machine.release, 'os x')) {
+        machine.platform = 'darwin';
+      } else if (_.contains(machine.release, 'windows')) {
+        machine.platform = 'win32';
+      }
+      else {
+        machine.platform = 'linux';
+      }
+
+      // Return the updated machine
+      return machine;
+
+    });
+
   })
   // Map to Machine objects.
   .map(function(data) {
     return new Machine({
       name: _.trim(data.DisplayName, '"'),
-      path: data.config
+      path: data.config,
+      release: _.trim(data.release, '"'),
+      platform: _.trim(data.platform, '"')
     });
   })
   // Wrap errors.

@@ -14,18 +14,7 @@ function Context(tag, opts) {
   // Split tag into parts.
   var parts = tag.split(':');
   self.tag = tag;
-  if (_.contains(tag, 'osx')) {
-    self.platform = 'darwin';
-  } else if (_.contains(tag, 'ubuntu')) {
-    self.platform = 'linux';
-  } else if (_.contains(tag, 'fedora')) {
-    self.platform = 'linux';
-  } else if (_.contains(tag, 'win')) {
-    self.platform = 'win32';
-  }
-  else {
-    throw new Error('Could not infer platform from tag: ' + tag);
-  }
+
   // First part of tag is machine.
   self.machineName = parts[0];
   // Second part of tag is snapshot.
@@ -133,12 +122,15 @@ Context.prototype.install = function() {
   return self.chain(function() {
     return self.machine.setEnv('KALABOX_DEV', 'true')
     .then(function() {
-      if (self.platform === 'darwin') {
+      if (self.machine.platform === 'darwin') {
         return self.machine.script('../scripts/build/build_deps_darwin.sh');
-      } else if (self.platform === 'linux') {
+      } else if (self.machine.platform === 'linux') {
         return self.machine.script('../scripts/build/build_deps_linux.sh');
-      } else if (self.platform === 'win32') {
-        return self.machine.script('../scripts/build/build_deps_win32.ps1');
+      } else if (self.machine.platform === 'win32') {
+        return self.machine.copy('../scripts/build/build_deps_win32.ps1')
+        .then(function() {
+          return self.machine.script('../scripts/build/build_deps_win32.bat');
+        })
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }
@@ -153,11 +145,11 @@ Context.prototype.install = function() {
       });
     })
     .then(function() {
-      if (self.platform === 'darwin') {
+      if (self.machine.platform === 'darwin') {
         return self.machine.script('../scripts/install/install_posix.sh');
-      } else if (self.platform === 'linux') {
+      } else if (self.machine.platform === 'linux') {
         return self.machine.script('../scripts/install/install_posix.sh');
-      } else if (self.platform === 'linux') {
+      } else if (self.machine.platform === 'win32') {
         return self.machine.script('../scripts/install/install_win32.bat');
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
