@@ -28,11 +28,16 @@ ted.describe('kalabox', function(tag) {
     });
   });
 
+  describe('[developer mode]', function() {
+    it('should be set', function() {
+      return vm.run('kbox config | grep devMode | grep true').promise();
+    });
+  });
+
   describe('[kbox update]', function() {
     it('should provision', function() {
-      return vm.run('echo "kalabox" | sudo -S kbox version')
-      .run('kbox update')
-      .run('kbox up && kbox down')
+      return vm.run('echo "kalabox" | sudo -S -i kbox version')
+      .run('echo "kalabox" | sudo -S -i kbox update')
       .promise();
     });
   });

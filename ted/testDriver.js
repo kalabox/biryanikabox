@@ -18,6 +18,8 @@ function Context(tag, opts) {
     self.platform = 'darwin';
   } else if (_.contains(tag, 'ubuntu')) {
     self.platform = 'linux';
+  } else if (_.contains(tag, 'fedora')) {
+    self.platform = 'linux';
   } else if (_.contains(tag, 'win')) {
     self.platform = 'win32';
   }
@@ -129,7 +131,8 @@ Context.prototype.run = function(s) {
 Context.prototype.install = function() {
   var self = this;
   return self.chain(function() {
-    return Promise.try(function() {
+    return self.machine.setEnv('KALABOX_DEV', 'true')
+    .then(function() {
       if (self.platform === 'darwin') {
         return self.machine.script('../scripts/build/build_deps_darwin.sh');
       } else if (self.platform === 'linux') {
@@ -169,6 +172,26 @@ Context.prototype.install = function() {
         self.snapshots.push('install');
       });*/
     });
+  });
+};
+
+/*
+ * Returns process.env of bill server on machine.
+ */
+Context.prototype.getEnv = function(fn) {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.getEnv()
+    .then(function(env) {
+      return fn.call(self, fn);
+    });
+  });
+};
+
+Context.prototype.setEnv = function(key, val) {
+  var self = this;
+  return self.chain(function() {
+    return self.machine.setEnv(key, val);
   });
 };
 
