@@ -53,7 +53,7 @@ function Machine(config) {
 Machine.prototype.getEnv = function(opts) {
   var self = this;
   var port = _.get(opts, 'port') || null;
-  return self.ip()
+  return self.getIp()
   .then(function(ip) {
     var client = new bill.client(ip, port);
     return client.getEnv();
@@ -66,7 +66,7 @@ Machine.prototype.getEnv = function(opts) {
 Machine.prototype.setEnv = function(key, val, opts) {
   var self = this;
   var port = _.get(opts, 'port') || null;
-  return self.ip()
+  return self.getIp()
   .then(function(ip) {
     var client = new bill.client(ip, port);
     return client.setEnv(key, val);
