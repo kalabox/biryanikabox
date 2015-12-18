@@ -49,7 +49,7 @@ Promise.try(function() {
   var opts = {
     hostname: config.hostname,
     port: config.port,
-    path: '/test',
+    path: '/batch',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -63,8 +63,14 @@ Promise.try(function() {
       res.setEncoding('utf8');
       res.on('data', function(data) {
         var json = JSON.parse(data);
-        if (!json['ping']) {
+        if (!json.ping) {
           console.log(JSON.stringify(json, null, '  '));
+        }
+        if (json.err) {
+          throw new Error(json.err);
+        }
+        if (json.end && json.end.failures !== 0) {
+          throw new Error(JSON.stringify(json));
         }
       });
       res.on('error', cb);

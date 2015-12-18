@@ -1,8 +1,9 @@
-name: just-some-testing
+name: kalabox-ted-testing
 tags:
-  - osx10.10-x64-clean:clean
+#  - osx10.9-x64-clean:clean
+#  - osx10.10-x64-clean:clean
   - osx10.11-x64-clean:clean
-  - ubuntu14.04-x64-clean:clean
+#  - ubuntu14.04-x64-clean:clean
 #  - win10-x64-clean:bill
 files:
  - ./testInstall.js

@@ -34,13 +34,13 @@ ted.describe('kalabox', function(tag) {
     });
   });
 
-  describe('[kbox update]', function() {
+  /*describe('[kbox update]', function() {
     it('should provision', function() {
       return vm.run('echo "kalabox" | sudo -S -i kbox version')
       .run('echo "kalabox" | sudo -S -i kbox update')
       .promise();
     });
-  });
+  });*/
 
   /*describe('[pantheon site]', function() {
     it('should create', function() {

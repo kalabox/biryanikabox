@@ -48,6 +48,7 @@ function Context(tag, opts) {
  */
 Context.prototype.chain = function(fn) {
   var self = this;
+  // Set tail of promise chain to tail of promise chain + new promise.
   self.p = self.p.then(fn);
   return self;
 };
@@ -73,7 +74,9 @@ Context.prototype.snapshot = function(id) {
 Context.prototype.revert = function(id) {
   var self = this;
   return self.chain(function() {
+    // Find snapshot.
     return self.machine.findSnapshotThrows(id)
+    // Revert snapshot.
     .then(function(snapshot) {
       return snapshot.revert();
     });
@@ -86,6 +89,7 @@ Context.prototype.revert = function(id) {
 Context.prototype.start = function() {
   var self = this;
   return self.chain(function() {
+    // Start vm.
     return self.machine.start();
   });
 };
@@ -96,7 +100,9 @@ Context.prototype.start = function() {
 Context.prototype.restart = function() {
   var self = this;
   return self.chain(function() {
+    // Stop vm.
     return self.machine.stop()
+    // Start vm.
     .then(function() {
       self.machine.start();
     }) ;
@@ -110,6 +116,7 @@ dd
 Context.prototype.run = function(s) {
   var self = this;
   return self.chain(function() {
+    // Run script on vm.
     return self.machine.script(s);
   });
 };
@@ -120,44 +127,66 @@ Context.prototype.run = function(s) {
 Context.prototype.install = function() {
   var self = this;
   return self.chain(function() {
-    return self.machine.setEnv('KALABOX_DEV', 'true')
+    // Set default environmental variables.
+    return self.__setEnv({
+      KALABOX_DEV: true
+    })
+    // Setup dependencies.
     .then(function() {
       if (self.machine.platform === 'darwin') {
+        // OSX
         return self.machine.script('../scripts/build/build_deps_darwin.sh');
       } else if (self.machine.platform === 'linux') {
+        // Linux
         return self.machine.script('../scripts/build/build_deps_linux.sh');
       } else if (self.machine.platform === 'win32') {
+        // Win32
         return self.machine.copy('../scripts/build/build_deps_win32.ps1')
         .then(function() {
           return self.machine.script('../scripts/build/build_deps_win32.bat');
         })
+        // Set windows environmental variables.
+        .then(function() {
+          return self.__setEnv({
+          });
+        });
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }
     })
+    // Make sure dependencies have been setup correctly.
     .then(function() {
+      // Make sure git dependency is setup correctly.
       return self.machine.script('git version')
+      // Make sure npm dependency is setup correctly.
       .then(function() {
         return self.machine.script('npm version');
       })
+      // Make sure developer mode environmental variable is setup correctly.
       .then(function() {
         return self.machine.script('env | grep KALABOX_DEV');
       });
     })
+    // Install kalabox.
     .then(function() {
       if (self.machine.platform === 'darwin') {
+        // OSX
         return self.machine.script('../scripts/install/install_posix.sh');
       } else if (self.machine.platform === 'linux') {
+        // Linux
         return self.machine.script('../scripts/install/install_posix.sh');
       } else if (self.machine.platform === 'win32') {
+        // Win32
         return self.machine.script('../scripts/install/install_win32.bat');
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }
     })
+    // Make sure kalabox has been installed correctly.
     .then(function() {
       return self.machine.script('kbox version');
     })
+    // Create a snapshot for clean+install state.
     .then(function() {
       /*return self.machine.createSnapshot('install')
       .then(function() {
@@ -168,22 +197,45 @@ Context.prototype.install = function() {
 };
 
 /*
- * Returns process.env of bill server on machine.
+ * Returns process.env of vm.
  */
 Context.prototype.getEnv = function(fn) {
   var self = this;
   return self.chain(function() {
+    // Get environmental variables object from vm.
     return self.machine.getEnv()
+    // Call function with environmental variable object.
     .then(function(env) {
       return fn.call(self, fn);
     });
   });
 };
 
-Context.prototype.setEnv = function(key, val) {
+/*
+ * Given an object, this sets environemental variables on machine of
+ * each key value pair.
+ */
+Context.prototype.__setEnv = function(env) {
+  var self = this;
+  // Wait for all promises to fulfill.
+  return Promise.all(
+    // Map each key value pair to a promise that sets the environmental
+    // variable on the vm.
+    _.map(env, function(val, key) {
+      // Set environmental variable on vm.
+      return self.machine.setEnv(key, val);
+    })
+  );
+};
+
+/*
+ * Given an object, this sets environemental variables on machine of
+ * each key value pair.
+ */
+Context.prototype.setEnv = function(env) {
   var self = this;
   return self.chain(function() {
-    return self.machine.setEnv(key, val);
+    return self.__setEnv(env);
   });
 };
 

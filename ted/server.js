@@ -4,8 +4,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Batch = require('./batch.js');
-
-// @todo: comment and clean up.
+var argv = require('yargs').argv;
 
 // Create app.
 var app = express();
@@ -13,21 +12,43 @@ var app = express();
 // Use json body parser plugin.
 app.use(bodyParser.json());
 
+/*app.get('/foo', function(req, res) {
+  return Promise.delay(5 * 1000)
+  .then(function() {
+    throw new Error(new Date());
+  })
+  .then(function() {
+    res.write('dfadsfsdf\n');
+    res.end();
+  })
+  .catch(function(err) {
+    res.json({err: err.message});
+    res.status(500);
+  });
+});*/
+
 /*
-job object
-{
-  start:
-  follow:
-}
-*/
+ * POST request that runs a batch of tests.
+ */
+app.post('/batch/', function(req, res) {
 
-app.post('/test/', function(req, res) {
-
-  console.log('REQUEST: %s', JSON.stringify(req.body));
-
+  // Respond with json data.
   res.setHeader('Content-Type', 'applicatin/json; charset=UTF-8');
+  // Respond with chunked encoding so response stays open.
   res.setHeader('Transfer-Encoding', 'chunked');
 
+  // Promise chain to hold response write completions.
+  var writes = Promise.resolve();
+  // Write helper function.
+  function write(json) {
+    writes = writes.then(function() {
+      return Promise.fromNode(function(cb) {
+        res.write(JSON.stringify(json), cb);
+      });
+    });
+  }
+
+  // Load batch config.
   Promise.try(function() {
     if (req.body.yaml) {
       return Batch.fromYaml(req.body.yaml);
@@ -37,26 +58,47 @@ app.post('/test/', function(req, res) {
       throw new Error('Invalid request body: ' + req.body);
     }
   })
+  // Run batch.
   .then(function(batch) {
+    // Send pings to stop response from timing out.
     var interval = setInterval(function() {
-      res.write(JSON.stringify({ping: new Date()}));
-    }, 30 * 1000);
+      write({
+        ping: new Date()
+      })
+    }, 5 * 1000);
+    // Write progress events back.
     batch.on('progress', function(evt) {
-      res.write(JSON.stringify(evt));
+      write(evt);
     });
-    batch.run()
+    // Run batch
+    return batch.run()
+    // Cleanup.
     .then(function() {
+      // Stop pinging.
       clearInterval(interval);
-      res.end();
+      // Wait for writes to complete.
+      return writes.then(function() {
+        // End response.
+        res.end();
+      });
     });
+  })
+  // Handle errors.
+  .catch(function(err) {
+    write({err: err.message});
+    res.status(500);
   });
 
 });
 
-var port = 8080;
-Promise.fromNode(function(cb) {
-  app.listen(port, cb);
-})
-.then(function() {
-  console.log('Listening on port: %s', port);
+// Configure port.
+var port = argv.p || 8080;
+// Start listening.
+Promise.try(function() {
+  return Promise.fromNode(function(cb) {
+    app.listen(port, cb);
+  })
+  .then(function() {
+    console.log('Listening on port: %s', port);
+  });
 });
