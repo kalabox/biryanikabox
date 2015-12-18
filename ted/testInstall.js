@@ -32,7 +32,7 @@ ted.describe('kalabox', function(tag) {
     it('should provision', function() {
       return vm.run('echo "kalabox" | sudo -S kbox version')
       .run('kbox update')
-      .run('kbox up && kbox down')
+      .run('kbox up & kbox down')
       .promise();
     });
   });

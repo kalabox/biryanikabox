@@ -44,6 +44,7 @@ function Machine(config) {
   this.name = config.name;
   this.path = config.path;
   this.user = new User('kalabox', 'kalabox');
+  this.ip;
 }
 
 /*
@@ -79,7 +80,8 @@ Machine.prototype.__script = function(cmd, opts) {
   var stdout = opts.stdout || true;
   var stderr = opts.stderr || true;
   var self = this;
-  return self.ip()
+
+  return self.getIp()
   .then(function(ip) {
     return Promise.fromNode(function(cb) {
       var client = new bill.client(ip, port);
@@ -124,7 +126,7 @@ Machine.prototype.copy = function(file, opts) {
   opts = opts || {};
   var port = opts.port || 1989;
   var self = this;
-  return self.ip()
+  return self.getIp()
   .then(function(ip) {
     return Promise.fromNode(function(cb) {
       var client = new bill.client(ip, port);
@@ -510,9 +512,17 @@ Machine.prototype.scriptOld = function(s) {
 /*
  * Gets the IP of the vm.
  */
-Machine.prototype.ip = function() {
+Machine.prototype.getIp = function() {
+
+  var self = this;
+
+  if (!_.isEmpty(self.ip)) {
+    return Promise.resolve(self.ip);
+  }
+
   return this.__execVmrun('getGuestIPAddress')
   .then(function(ip) {
+    self.ip = ip.trim();
     return ip.trim();
   })
   .catch(function(err) {

@@ -49,4 +49,3 @@ PowerShell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnviro
 
 CHDIR %OLDDIR%
 
-PAUSE
