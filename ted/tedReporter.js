@@ -21,45 +21,40 @@ function List(runner, opts) {
 
   var self = this;
   var total = runner.total;
-  var events = opts.events;
 
   runner.on('start', function() {
-    //events.emit('start', {total: total});
-    console.log(JSON.stringify(['start', { total: total }]));
+    opts.events.emit('start', {total: total});
   });
 
   runner.on('test', function(test) {
-    events.emit('test', test);
+    opts.events.emit('test', test);
   });
 
   runner.on('test end', function(test) {
-    events.emit('test-end', test);
+    opts.events.emit('test-end', test);
   });
 
   runner.on('hook', function(hook) {
-    //events.emit('hook', hook);
+    opts.events.emit('hook', hook);
   });
 
   runner.on('hook end', function(hook) {
-    //events.emit('hook-end', hook);
+    opts.events.emit('hook-end', hook);
   });
 
   runner.on('pass', function(test) {
-    //events.emit('pass', clean(test));
-    console.log(JSON.stringify(['pass', clean(test)]));
+    opts.events.emit('pass', clean(test));
   });
 
   runner.on('fail', function(test, err) {
     test = clean(test);
     test.err = err.message;
     test.stack = err.stack || null;
-    console.log(JSON.stringify(['fail', test]));
-    //events.emit('fail', test);
+    opts.events.emit('fail', test);
   });
 
   runner.on('end', function() {
-    console.log(JSON.stringify(['end', self.stats]));
-    //events.emit('end', self.stats);
+    opts.events.emit('end', self.stats);
   });
 }
 
