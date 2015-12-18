@@ -48,6 +48,32 @@ function Machine(config) {
 }
 
 /*
+ * Get process.env of bill server.
+ */
+Machine.prototype.getEnv = function(opts) {
+  var self = this;
+  var port = _.get(opts, 'port') || null;
+  return self.ip()
+  .then(function(ip) {
+    var client = new bill.client(ip, port);
+    return client.getEnv();
+  });
+};
+
+/*
+ * Set process.env key value pair on bill server.
+ */
+Machine.prototype.setEnv = function(key, val, opts) {
+  var self = this;
+  var port = _.get(opts, 'port') || null;
+  return self.ip()
+  .then(function(ip) {
+    var client = new bill.client(ip, port);
+    return client.setEnv(key, val);
+  });
+};
+
+/*
  * Run a script in vm using bill daemon.
  */
 Machine.prototype.script = function(cmd, opts) {
@@ -216,7 +242,7 @@ Machine.prototype.__execVmrun = function(action, opts) {
   if (!_.startsWith(process.env.path, vmRunPath)) {
     var newPath = [vmRunPath, process.env[pathString]].join(pathSep);
     process.env[pathString] = newPath;
-    console.log(process.env);
+    //console.log(process.env);
   }
 
   // Get user.
@@ -283,7 +309,7 @@ Machine.prototype.start = function(opts) {
   // Start the vm.
   return self.__start(opts)
   // Wait a short duration.
-  .delay(10 * 1000)
+  .delay(30 * 1000)
   // Wait for vm to become responsive.
   .then(function() {
     return self.wait();
@@ -557,7 +583,7 @@ Machine.prototype.listSnapshots = function() {
     var snapshots = _.map(names, function(name) {
       return new Snapshot(name, self);
     });
-    console.log(snapshots);
+    //console.log(snapshots);
     return snapshots;
   })
   // Wrap errors.

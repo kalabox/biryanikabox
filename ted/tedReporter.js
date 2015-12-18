@@ -21,13 +21,31 @@ function List(runner, opts) {
 
   var self = this;
   var total = runner.total;
+  var events = opts.events;
 
   runner.on('start', function() {
-    //global.events.emit('start', {total: total});
+    //events.emit('start', {total: total});
     console.log(JSON.stringify(['start', { total: total }]));
   });
 
+  runner.on('test', function(test) {
+    events.emit('test', test);
+  });
+
+  runner.on('test end', function(test) {
+    events.emit('test-end', test);
+  });
+
+  runner.on('hook', function(hook) {
+    //events.emit('hook', hook);
+  });
+
+  runner.on('hook end', function(hook) {
+    //events.emit('hook-end', hook);
+  });
+
   runner.on('pass', function(test) {
+    //events.emit('pass', clean(test));
     console.log(JSON.stringify(['pass', clean(test)]));
   });
 
@@ -36,10 +54,12 @@ function List(runner, opts) {
     test.err = err.message;
     test.stack = err.stack || null;
     console.log(JSON.stringify(['fail', test]));
+    //events.emit('fail', test);
   });
 
   runner.on('end', function() {
     console.log(JSON.stringify(['end', self.stats]));
+    //events.emit('end', self.stats);
   });
 }
 
