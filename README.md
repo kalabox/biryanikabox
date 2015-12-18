@@ -36,3 +36,9 @@ Download these two files to the same directory
 cd /path/to/scripts
 build_deps_win32.bat
 ```
+
+You will also want to add the oracle cert. As an admin
+
+```
+certutil -addstore "TrustedPublisher" "C:\Users\kalabox\Desktop\oracle.cer"
+```
