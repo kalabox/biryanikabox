@@ -68,6 +68,16 @@ Batch.prototype.unmute = function() {
 };
 
 /*
+ * Load tags into env.
+ */
+Batch.prototype.loadTags = function() {
+  env.vms.reset();
+  _.each(this.tags, function(tag) {
+    env.vms.add(tag);
+  });
+};
+
+/*
  * Load globals that will be used by the test scripts.
  */
 Batch.prototype.loadGlobals = function() {
@@ -88,6 +98,9 @@ Batch.prototype.run = function() {
 
   // Save this reference.
   var self = this;
+
+  // Load tags.
+  self.loadTags();
 
   // Load globals.
   self.loadGlobals();
@@ -119,7 +132,7 @@ Batch.fromYaml = function(data) {
   // Return new instance.
   .then(function(config) {
     return new Batch(config);
-  })
+  });
 };
 
 /*
