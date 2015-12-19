@@ -14,10 +14,11 @@ vmrun.listMachines()
 .then(function(machines) {
   return Promise.each(machines, function(machine) {
     // Get ip address.
-    return machine.ip()
+    return machine.getIp()
     // Don't throw an error is the machine is powered off.
     .catch(function(err) {
-      if (!_.contains(err.message, 'not powered on')) {
+      if (!_.contains(err.message, 'not powered on') &&
+        !_.contains(err.message, 'Tools are not running')) {
         return err.message;
       }
     })
