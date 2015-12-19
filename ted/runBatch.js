@@ -58,10 +58,10 @@ Batch.fromYamlFile(file)
 
   // Run batch.
   return batch.run()
-  // Exit process with error code equal to number of failures.
+  // Exit process with error code 1.
   .then(function(failures) {
     if (failures) {
-      process.exit(failures.length);
+      process.exit(1);
     }
   });
 
