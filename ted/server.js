@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
+var github = request('./github.js');
 
 // Create app.
 var app = express();
@@ -12,20 +13,29 @@ var app = express();
 // Use json body parser plugin.
 app.use(bodyParser.json());
 
-/*app.get('/foo', function(req, res) {
-  return Promise.delay(5 * 1000)
-  .then(function() {
-    throw new Error(new Date());
+app.post('/pull-request', function(req, res) {
+  // Great new github request.
+  Promise.try(function() {
+    return github.request({
+      headers: req.headers,
+      body: req.body
+    });
   })
-  .then(function() {
-    res.write('dfadsfsdf\n');
+  // End the response, things will be asynchronous from here on.
+  .tap(function() {
     res.end();
   })
+  // Report error back to github.
   .catch(function(err) {
     res.json({err: err.message});
     res.status(500);
+    throw err;
+  })
+  // Run github request.
+  .then(function(ghreq) {
+    return ghreq.run();
   });
-});*/
+});
 
 /*
  * POST request that runs a batch of tests.
