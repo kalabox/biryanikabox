@@ -30,7 +30,9 @@ ted.describe('kalabox', function(tag) {
 
   describe('[developer mode]', function() {
     it('should be set', function() {
-      return vm.run('kbox config | grep devMode | grep true').promise();
+      var grepA = (vm.machine.platform === 'win32') ? 'findstr' : 'grep';
+      var dmCmd = ['kbox config', grepA + ' devMode', grepA + ' true'];
+      return vm.run(dmCmd.join(' | ')).promise();
     });
   });
 

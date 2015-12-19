@@ -145,11 +145,19 @@ Context.prototype.install = function() {
         .then(function() {
           return self.machine.script('../scripts/build/build_deps_win32.bat');
         })
-        // Set windows environmental variables.
+        // Grab windows environmental variables.
         .then(function() {
-          return self.__setEnv({
-          });
-        });
+          return self.machine.getEnv()
+        })
+        // Set some new ENVvars
+        .then(function(env) {
+          // Add some windows things to the path
+          var path = env.Path.split(';');
+          path.push('C:\\Program Files (x86)\\nodejs\\');
+          path.push('C:\\Program Files (x86)\\JXcore');
+          path.push('C:\\Program Files\\Git\\bin');
+          return self.__setEnv({Path: path.join(';')});
+        })
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }
@@ -164,7 +172,10 @@ Context.prototype.install = function() {
       })
       // Make sure developer mode environmental variable is setup correctly.
       .then(function() {
-        return self.machine.script('env | grep KALABOX_DEV');
+        var envEr = (self.machine.platform === 'win32') ? 'set' : 'env';
+        var grepA = (self.machine.platform === 'win32') ? 'findstr' : 'grep';
+        var envCmd = [envEr, '|', grepA, 'KALABOX_DEV'].join(' ');
+        return self.machine.script(envCmd);
       });
     })
     // Install kalabox.
@@ -177,7 +188,18 @@ Context.prototype.install = function() {
         return self.machine.script('../scripts/install/install_posix.sh');
       } else if (self.machine.platform === 'win32') {
         // Win32
-        return self.machine.script('../scripts/install/install_win32.bat');
+        return self.machine.script('../scripts/install/install_win32.bat')
+        // Grab windows environmental variables.
+        .then(function() {
+          return self.machine.getEnv()
+        })
+        // Set some new ENVvars
+        .then(function(env) {
+          // Add some windows things to the path
+          var path = env.Path.split(';');
+          path.push('C:\\kalabox\\bin');
+          return self.__setEnv({Path: path.join(';')});
+        })
       } else {
         throw new Error('Platform not implemented: ' + self.tag);
       }

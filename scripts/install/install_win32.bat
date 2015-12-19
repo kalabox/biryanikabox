@@ -29,7 +29,7 @@ IF "%1"=="" (
 ) ELSE (
   SET WORKING_BRANCH=%1
 )
-CHDIR %USERPROFILE%
+CHDIR C:\
 git clone https://github.com/kalabox/kalabox.git
 CHDIR kalabox
 git checkout %WORKING_BRANCH%
@@ -40,9 +40,9 @@ ECHO "With the following backends and apps:"
 IF EXIST "%USERPROFILE%\.kalabox\development.json" (
   TYPE %USERPROFILE%\.kalabox\development.json
 ) ELSE (
-  TYPE %USERPROFILE%\kalabox\development.json
+  TYPE C:\kalabox\development.json
 )
-CALL npm install
+CALL npm install --force
 
 REM Get kbox working better
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable('Path', ""$env:Path;$env:USERPROFILE\kalabox\bin""", [EnvironmentVariableTarget]::User)";
