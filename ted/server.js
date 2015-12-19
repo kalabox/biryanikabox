@@ -13,6 +13,9 @@ var app = express();
 // Use json body parser plugin.
 app.use(bodyParser.json());
 
+// Job chain.
+var jobs = Promise.resolve();
+
 app.post('/pull-request', function(req, res) {
   // Great new github request.
   Promise.try(function() {
@@ -33,7 +36,14 @@ app.post('/pull-request', function(req, res) {
   })
   // Run github request.
   .then(function(ghreq) {
-    return ghreq.run();
+    // Initialize github request.
+    return ghreq.init()
+    .then(function() {
+      // Add github request to job chain.
+      jobs = jobs.then(function() {
+        return ghreq.run();
+      });
+    });
   });
 });
 
