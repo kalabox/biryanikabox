@@ -28,6 +28,7 @@
     "chalk": "~0.5.1",
     "express": "^4.13.3",
     "fs-extra": "^0.18.2",
+    "github": "^0.2.4",
     "js-yaml": "^3.4.6",
     "json-stream": "^1.0.0",
     "kalabox-bill": "https://github.com/kalabox/kalabox-bill/tarball/master",

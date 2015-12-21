@@ -1,31 +1,31 @@
 'use strict';
 
-var github = require('../github.js');
-
-function State() {}
-
-State.pending = 'pending';
-
-State.success = 'success';
-
-State.error = 'error';
-
-State.failure = 'failure';
+var Promise = require('bluebird');
 
 function Status(config) {
   if (this instanceof Status) {
     this.config = config;
-    this.state = State.pending;
-    this.targetUrl = '';
-    this.description = '';
-    this.context = '';
+    //this.targetUrl = '';
+    //this.description = '';
+    //this.context = '';
+    this.id = config.id,
+    this.repo = config.repo,
+    this.github = config.github;
   } else {
     return new Status(config);
   }
 }
 
 Status.prototype._update = function(state) {
-  return github.post();
+  var self = this;
+  return Promise.fromNode(function(cb) {
+    self.github.api.statuses.create({
+      user: self.repo.user,
+      repo: self.repo.repo,
+      sha: self.id,
+      state: state
+    }, cb);
+  });
 };
 
 Status.prototype.get = function() {
@@ -33,19 +33,19 @@ Status.prototype.get = function() {
 };
 
 Status.prototype.pending = function() {
-  return this._update(State.pending);
+  return this._update('pending');
 };
 
 Status.prototype.success = function() {
-  return this._update(State.success);
+  return this._update('success');
 };
 
 Status.prototype.error = function() {
-  return this._update(State.error);
+  return this._update('error');
 };
 
 Status.prototype.failure = function() {
-  return this._update(State.failure);
+  return this._update('failure');
 };
 
 module.exports = Status;
