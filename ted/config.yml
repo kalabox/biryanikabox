@@ -6,4 +6,5 @@ tags:
 #  - ubuntu14.04-x64-clean:clean
   - win10-x64-clean:bill
 files:
- - ./testInstall.js
+# - ./testInstall.js
+  - ./tests.js

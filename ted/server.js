@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
-var github = request('./github.js');
+var Github = request('./github.js');
 
 // Create app.
 var app = express();
@@ -16,7 +16,40 @@ app.use(bodyParser.json());
 // Job chain.
 var jobs = Promise.resolve();
 
-app.post('/pull-request', function(req, res) {
+function queueJob(fn) {
+  jobs = jobs.then(fn);
+}
+
+var github = new Github({
+  token: '419b9a03a62c6168546f55b1d9b4fa670459334';
+});
+
+app.post('/github/webhook', function(req, res) {
+  // Add job to the job queue.
+  Promise.try(function() {
+    return github.createWebhook(req)
+    .then(function(webhook) {
+      queueJob(function() {
+        return webhook.run();
+      });
+    });
+  })
+  // There was a problem.
+  .catch(function(err) {
+    res.json({status: {err: err.message}});
+    res.status(500);
+    res.end();
+    throw err;  
+  })
+  // Everything should be ok.
+  .then(function() {
+    res.json({status: 'OK'});
+    res.status(200);
+    res.end();
+  });
+});
+
+app.post('/pull-request-old', function(req, res) {
   // Great new github request.
   Promise.try(function() {
     return github.request({

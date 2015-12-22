@@ -2,36 +2,27 @@
 
 var Commit = require('./commit.js');
 var Repo = require('./repo.js');
+var Promise = require('bluebird');
 
 function Webhook(config) {
   if (this instanceof Webhook) {
     this.config = config;
+    this.client = config.client;
     this.headers = config.headers;
     this.body = config.body;
-    this.github = config.github;
     this.kind = config.headers['x-github-event'];
-    this.user = config.body.repository.owner.name;
-    this.repoName = config.body.repository.name;
-    this.hash = config.body.after;
+    this.repo = new Repo({
+      client: client,
+      user: config.body.repository.owner.name,
+      repo: config.body.repository.name
+    });
+    this.commit = new Commit({
+      sha: config.body.after,
+      repo: this.repo
+    });
   } else {
     return new Webhook(config);
   }
 }
-
-Webhook.prototype.commit = function() {
-  var self = this;
-  return new Commit({
-    id: self.body.after
-  });
-};
-
-Webhook.prototype.repo = function() {
-  var self = this;
-  return new Repo({
-    user: self.user,
-    repo: self.repoName,
-    github: self.github  
-  });
-};
 
 module.exports = Webhook;
