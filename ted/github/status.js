@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var Promise = require('bluebird');
 var util = require('util');
 
@@ -12,7 +13,11 @@ function Status(config) {
     this.state = 'pending';
     this.targetUrl = config.targetUrl;
     this.description = config.description;
-    this.context = config.context;
+    this.context = _.filter([
+      'ci',
+      'ted',
+      config.context
+    ], _.identity).join('/');
   } else {
     return new Status(config);
   }
@@ -21,22 +26,22 @@ function Status(config) {
 Status.prototype._update = function(opts) {
   var self = this;
   return Promise.fromNode(function(cb) {
-    if (opts.state) {
-      self.state = opts.state;
-    }
-    if (opts.description) {
-      self.description = opts.description;
-    }
+    opts.state = opts.state || self.state;
+    opts.description = opts.description || self.description;
+    opts.context = self.context;
+    opts.target_url = self.targetUrl;
     self.repo.api.status(self.commit.sha, opts, cb);
   });
 };
 
 Status.prototype.pending = function(opts) {
+  opts = opts || {};
   opts.state = 'pending';
   return this._update(opts);
 };
 
 Status.prototype.success = function(opts) {
+  opts = opts || {};
   opts.state = 'success';
   return this._update(opts);
 };

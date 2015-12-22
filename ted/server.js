@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
-var Github = request('./github.js');
+var Github = require('./github.js');
 
 // Create app.
 var app = express();
@@ -21,7 +21,7 @@ function queueJob(fn) {
 }
 
 var github = new Github({
-  token: '419b9a03a62c6168546f55b1d9b4fa670459334';
+  token: 'e6c0d34ba0c4e6ac80bc39f3e2daba904b93ee7c'
 });
 
 app.post('/github/webhook', function(req, res) {
@@ -29,22 +29,25 @@ app.post('/github/webhook', function(req, res) {
   Promise.try(function() {
     return github.createWebhook(req)
     .then(function(webhook) {
-      queueJob(function() {
-        return webhook.run();
+      return webhook.init()
+      .then(function() {
+        queueJob(function() {
+          return webhook.run();
+        });
       });
     });
   })
   // There was a problem.
   .catch(function(err) {
-    res.json({status: {err: err.message}});
     res.status(500);
+    res.json({status: {err: err.message}});
     res.end();
     throw err;  
   })
   // Everything should be ok.
   .then(function() {
-    res.json({status: 'OK'});
     res.status(200);
+    res.json({status: 'OK'});
     res.end();
   });
 });

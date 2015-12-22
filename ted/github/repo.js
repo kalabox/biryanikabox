@@ -10,7 +10,7 @@ function Repo(config) {
     this.user = config.user;
     this.repo = config.repo;
     this.name = util.format('%s/%s', config.user, config.repo);
-    this.api = client.repo(this.name);
+    this.api = config.client.repo(this.name);
   } else {
     return new Repo(config);
   }

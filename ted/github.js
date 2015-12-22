@@ -1,7 +1,7 @@
 'use strict';
 
 var githubApi = require('octonode');
-var webhook = require('./github/webhook.js');
+var Webhook = require('./github/webhook.js');
 
 function Github(config) {
   if (this instanceof Github) {
@@ -13,17 +13,14 @@ function Github(config) {
   }
 }
 
-Github.prototype.webhook = function(req) {
+Github.prototype.createWebhook = function(req) {
   var self = this;
   var webhook = new Webhook({
     client: self.client,
     headers: req.headers,
-    body: req.body;
+    body: req.body
   });
-  return webhook.commit.createStatus({
-    description: 'TED testing pending.'
-  })
-  .return(webhook);
+  return Promise.resolve(webhook);
 };
 
 module.exports = Github;
