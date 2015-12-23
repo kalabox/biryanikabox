@@ -12,6 +12,7 @@ var yaml = require('./yaml.js');
 var fs = require('fs');
 var JSONStream = require('json-stream');
 var Mocha = require('mocha');
+var path = require('path');
 var reporter = require('./tedReporter.js');
 
 /*
@@ -88,7 +89,17 @@ Batch.prototype.loadGlobals = function() {
  * Load a test file.
  */
 Batch.prototype.loadFile = function(filepath) {
-  this.mocha.addFile(filepath);
+  /*
+   * Module's cache needs to be cleared for this file so that in the next
+   * batch it will get loaded again by mocha. This is a work around for a
+   * bug in running mocha programmatically.
+   */
+  // Get absolute path to file.
+  var file = path.resolve(filepath);
+  // Clear the cache for the file.
+  delete require.cache[file];
+  // Add the file.
+  this.mocha.addFile(file);
 };
 
 /*
