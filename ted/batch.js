@@ -7,7 +7,6 @@ var exec = require('child_process').exec;
 var VError = require('verror');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
-var env = require('./env.js');
 var yaml = require('./yaml.js');
 var fs = require('fs');
 var JSONStream = require('json-stream');
@@ -23,6 +22,7 @@ function Batch(config) {
     this.config = config;
     this.name = this.config.name;
     this.files = this.config.files;
+    this.sha = this.config.sha || 'HEAD';
     this.tags = this.config.tags;
     this.config.timeout = this.config.timeout || 20 * 60 * 1000;
     this.write = process.stdout.write;
@@ -72,9 +72,10 @@ Batch.prototype.unmute = function() {
  * Load tags into env.
  */
 Batch.prototype.loadTags = function() {
-  env.vms.reset();
+  global.ted.state.sha = this.sha;
+  global.ted.state.vms = [];
   _.each(this.tags, function(tag) {
-    env.vms.add(tag);
+    global.ted.state.vms.push(tag);
   });
 };
 
@@ -110,11 +111,11 @@ Batch.prototype.run = function() {
   // Save this reference.
   var self = this;
 
-  // Load tags.
-  self.loadTags();
-
   // Load globals.
   self.loadGlobals();
+
+  // Load tags.
+  self.loadTags();
 
   // Load test files.
   _.each(self.files, function(filepath) {

@@ -124,7 +124,7 @@ Context.prototype.run = function(s) {
 /*
  * Install kalabox and create install snapshot.
  */
-Context.prototype.install = function() {
+Context.prototype.install = function(opts) {
   var self = this;
   return self.chain(function() {
     // Set default environmental variables.
@@ -180,15 +180,22 @@ Context.prototype.install = function() {
     })
     // Install kalabox.
     .then(function() {
+      var args = _.filter([opts.sha], _.identity);
       if (self.machine.platform === 'darwin') {
         // OSX
-        return self.machine.script('../scripts/install/install_posix.sh');
+        return self.machine.script('../scripts/install/install_posix.sh', {
+          args: args
+        });
       } else if (self.machine.platform === 'linux') {
         // Linux
-        return self.machine.script('../scripts/install/install_posix.sh');
+        return self.machine.script('../scripts/install/install_posix.sh', {
+          args: args
+        });
       } else if (self.machine.platform === 'win32') {
         // Win32
-        return self.machine.script('../scripts/install/install_win32.bat')
+        return self.machine.script('../scripts/install/install_win32.bat', {
+          args: args
+        })
         // Grab windows environmental variables.
         .then(function() {
           return self.machine.getEnv()
@@ -310,7 +317,7 @@ module.exports = {
   vm: function(tag) {
     return new Context(tag);
   },
-  install: function(tag) {
-    return new Context(tag).install();
+  install: function(tag, opts) {
+    return new Context(tag).install(opts);
   }
 };

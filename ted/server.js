@@ -6,6 +6,8 @@ var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
 var Github = require('./github.js');
+var config = require(argv.config || './config.json');
+var results = require('./results.js');
 
 // Create app.
 var app = express();
@@ -21,7 +23,39 @@ function queueJob(fn) {
 }
 
 var github = new Github({
-  token: 'e6c0d34ba0c4e6ac80bc39f3e2daba904b93ee7c'
+  token: config.server.github.token
+});
+
+/*
+ * Respond with a json result object read from disk.
+ */
+app.get('/result/:id', function(req, res) {
+  // Get id of result being requested.
+  var id = req.params.id;
+  // Get result object.
+  var result = results.get(id);
+  // Check if result exists.
+  return result.exists()
+  .then(function(exists) {
+    if (!exists) {
+      // If result does not exist respond with a 404.
+      res.status(404);
+      res.end();
+    } else {
+      // If result does exist load from disk and send in response.
+      return result.load()
+      .then(function(data) {
+        res.json(data);
+        res.end();
+      });
+    }
+  })
+  // Handle errors.
+  .catch(function(err) {
+    res.status(500);
+    res.json({err: err.message});
+    res.end();
+  });
 });
 
 app.post('/github/webhook', function(req, res) {
@@ -31,7 +65,7 @@ app.post('/github/webhook', function(req, res) {
     .then(function(webhook) {
       return webhook.init()
       .then(function() {
-        queueJob(function() {
+        return queueJob(function() {
           return webhook.run();
         });
       });
@@ -49,37 +83,6 @@ app.post('/github/webhook', function(req, res) {
     res.status(200);
     res.json({status: 'OK'});
     res.end();
-  });
-});
-
-app.post('/pull-request-old', function(req, res) {
-  // Great new github request.
-  Promise.try(function() {
-    return github.request({
-      headers: req.headers,
-      body: req.body
-    });
-  })
-  // End the response, things will be asynchronous from here on.
-  .tap(function() {
-    res.end();
-  })
-  // Report error back to github.
-  .catch(function(err) {
-    res.json({err: err.message});
-    res.status(500);
-    throw err;
-  })
-  // Run github request.
-  .then(function(ghreq) {
-    // Initialize github request.
-    return ghreq.init()
-    .then(function() {
-      // Add github request to job chain.
-      jobs = jobs.then(function() {
-        return ghreq.run();
-      });
-    });
   });
 });
 
@@ -148,7 +151,7 @@ app.post('/batch/', function(req, res) {
 });
 
 // Configure port.
-var port = argv.p || 8080;
+var port = config.server.port;
 // Start listening.
 Promise.try(function() {
   return Promise.fromNode(function(cb) {

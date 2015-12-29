@@ -1,10 +1,15 @@
 
-ted.describe('kalabox', function(tag) {
+ted.describe('kalabox', function(config) {
+
+  var sha = config.sha;
+  var tag = config.tag;
 
   var vm = null;
 
   before(function() {
-    vm = ted.driver.install(tag);
+    vm = ted.driver.install(tag, {
+      sha: sha
+    });
     return vm.promise();
   });
 
@@ -36,13 +41,13 @@ ted.describe('kalabox', function(tag) {
     });
   });
 
-  /*describe('[kbox update]', function() {
+  describe('[kbox update]', function() {
     it('should provision', function() {
       return vm.run('echo "kalabox" | sudo -S -i kbox version')
       .run('echo "kalabox" | sudo -S -i kbox update')
       .promise();
     });
-  });*/
+  });
 
   /*describe('[pantheon site]', function() {
     it('should create', function() {

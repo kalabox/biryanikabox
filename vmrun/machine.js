@@ -113,6 +113,9 @@ Machine.prototype.__script = function(cmd, opts) {
       var client = new bill.client(ip, port);
       var buffer = '';
       var bufferErr = '';
+      client.on('err', function(data) {
+        cb(new Error(data));
+      });
       client.on('exit', function(data) {
         if (data.code !== 0) {
           var msg = JSON.stringify({
@@ -135,15 +138,29 @@ Machine.prototype.__script = function(cmd, opts) {
           process.stdout.write(data);
         }
       });
-      var fullCmd = cmd;
+
+      // Build full command with arguments to be used server side.
+      var fullCmd =
+        opts.args && opts.args.length ?
+        {cmd: cmd.cmd, args: opts.args } :
+        cmd;
+
       client.sh(fullCmd)
       .then(function() {
         cb();
       });
     });
   })
+  // Wrap errors.
   .catch(function(err) {
-    throw new VError(err, 'Error running bill: %s', cmd);
+    throw new VError(
+      err,
+      'Error running bill: %s',
+      JSON.stringify({
+        cmd: cmd,
+        opts: opts
+      }, null, '  ')
+    );
   });
 };
 

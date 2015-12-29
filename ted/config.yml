@@ -1,10 +1,11 @@
 name: kalabox-ted-testing
+#sha: HEAD
 tags:
 #  - osx10.9-x64-clean:clean
 #  - osx10.10-x64-clean:clean
-#  - osx10.11-x64-clean:clean
+  - osx10.11-x64-clean:clean
 #  - ubuntu14.04-x64-clean:clean
-  - win10-x64-clean:bill
+#  - win10-x64-clean:bill
 files:
-# - ./testInstall.js
-  - ./tests.js
+  - ./testInstall.js
+#  - ./tests.js
