@@ -6,6 +6,7 @@
 var _ = require('lodash');
 var util = require('util');
 var driver = require('./testDriver.js');
+var Promise = require('bluebird');
 
 // Setup global ted object.
 global.ted = {
@@ -14,6 +15,9 @@ global.ted = {
     sha: 'HEAD',
     vms: []
   },
+  // Helper modules.
+  Promise: Promise,
+  _: _,
   // Driver for using vmware.
   driver: driver,
   // Global describe function.

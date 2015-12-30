@@ -69,10 +69,28 @@ Webhook.prototype.run = function() {
   return self.rootStatus.pending({
     description: 'TED loading tests.'
   })
-  // Load batch from yaml file.
+  // Download test files from repo.
   .then(function() {
-    // @todo: make this be injected into run or from config in constructor.
-    return Batch.fromYamlFile('./config.yml');
+    // Get list of File objects.
+    return self.repo.testFiles()
+    // Download each file.
+    .tap(function(files) {
+      return Promise.each(files, function(file) {
+        return file.download();
+      });
+    })
+    // Map File objects to just filepaths.
+    .map(function(file) {
+      return file.path;
+    });
+  })
+  // Load batch from yaml file and add test files to batch.
+  .then(function(files) {
+    return yaml.parseFile('./config.yml')
+    .then(function(config) {
+      config.files = files;
+      return new Batch(config);
+    });
   })
   // Subscribe to events and run batch.
   .then(function(batch) {
@@ -82,6 +100,9 @@ Webhook.prototype.run = function() {
       withLock(function() {
         // Set total tests, and update status with number of tests.
         totalTests = data.total;
+        if (totalTests === 0) {
+          throw new Error('Batch doesn\'t have any tests!');
+        }
         return self.rootStatus.pending({
           description: util.format('TED running %s tests.', data.total)
         });
