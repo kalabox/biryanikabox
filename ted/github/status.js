@@ -28,6 +28,29 @@ function Status(config) {
 }
 
 /*
+ * Returns a json object of object's current state.
+ */
+Status.prototype.info = function() {
+  var self = this;
+  return Promise.try(function() {
+    if (self.result) {
+      return self.result.load();
+    }
+  })
+  .then(function(result) {
+    return {
+      state: self.state,
+      targetUrl: self.targetUrl,
+      description: self.description,
+      context: self.context,
+      repo: self.repo.name,
+      sha: self.commit.sha,
+      result: result
+    };
+  });
+};
+
+/*
  * Update status object with github status.
  */
 Status.prototype._update = function(opts) {
@@ -41,10 +64,10 @@ Status.prototype._update = function(opts) {
   // Update github status.
   .then(function(result) {
     return Promise.fromNode(function(cb) {
-      opts.state = opts.state || self.state;
-      opts.description = opts.description || self.description;
-      opts.target_url = result ? result.url() : null;
-      opts.context = self.context;
+      self.state = opts.state = opts.state || self.state;
+      self.description = opts.description = opts.description || self.description;
+      self.target_url = opts.target_url = result ? result.url() : null;
+      self.context = opts.context = self.context;
       self.repo.api.status(self.commit.sha, opts, cb);
     });
   });
@@ -92,8 +115,10 @@ Status.prototype.failure = function(opts) {
  * Create and save a result to disk.
  */
 Status.prototype.saveResult = function(data) {
+  var self = this;
   return results.create()
   .tap(function(result) {
+    self.result = result;
     return result.save(data);
   });  
 };

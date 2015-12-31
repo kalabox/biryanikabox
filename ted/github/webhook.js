@@ -8,7 +8,7 @@ var Batch = require('../batch.js');
 var util = require('util');
 var yaml = require('../yaml.js');
 var results = require('../results.js');
-var config = require('../config.json');
+var email = require('kalabox-email')(global.config.email);
 
 /*
  * Constructor.
@@ -45,6 +45,23 @@ Webhook.prototype.init = function() {
   })
   .tap(function(status) {
     self.rootStatus = status;
+  });
+};
+
+Webhook.prototype.info = function() {
+  var self = this;
+  return self.rootStatus.info();
+ };
+
+Webhook.prototype.sendEmail = function(opts) {
+  var self = this;
+  opts = opts || {};
+  opts.from = opts.from || 'ted@kalabox.io';
+  opts.to = opts.to || '@ci';
+  return self.info()
+  .then(function(info) {
+    opts.text = opts.text || JSON.stringify(info, null, '  ');
+    return email.send(opts);
   });
 };
 
@@ -86,11 +103,9 @@ Webhook.prototype.run = function() {
   })
   // Load batch from yaml file and add test files to batch.
   .then(function(files) {
-    return yaml.parseFile('./config.yml')
-    .then(function(config) {
-      config.files = files;
-      return new Batch(config);
-    });
+    var config = global.config.batch;
+    config.files = files;
+    return new Batch(config);
   })
   // Subscribe to events and run batch.
   .then(function(batch) {
@@ -169,6 +184,11 @@ Webhook.prototype.run = function() {
       }
     })
     .then(function() {
+      return self.sendEmail({
+        subject: 'TED failures'
+      });
+    })
+    .then(function() {
       throw err;
     });
   })
@@ -177,6 +197,11 @@ Webhook.prototype.run = function() {
     return self.rootStatus.success({
       description: 'TED testing successful!',
       result: {success: data}
+    })
+    .then(function() {
+      return self.sendEmail({
+        subject: 'TED successful'
+      });
     });
   })
   // Report errors.

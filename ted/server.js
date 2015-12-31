@@ -5,9 +5,10 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
-var Github = require('./github.js');
-var config = require(argv.config || './config.json');
+var path = require('path');
+var config = global.config = require(path.join(process.cwd(), argv.config));
 var results = require('./results.js');
+var Github = require('./github.js');
 
 // Create app.
 var app = express();

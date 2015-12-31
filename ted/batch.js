@@ -100,7 +100,11 @@ Batch.prototype.loadFile = function(filepath) {
   // Clear the cache for the file.
   delete require.cache[file];
   // Add the file.
-  this.mocha.addFile(file);
+  try {
+    this.mocha.addFile(file);
+  } catch(err) {
+    throw new VError(err, 'Error loading file: %s', filepath);
+  }
 };
 
 /*

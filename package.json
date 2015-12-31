@@ -32,6 +32,7 @@
     "js-yaml": "^3.4.6",
     "json-stream": "^1.0.0",
     "kalabox-bill": "https://github.com/kalabox/kalabox-bill/tarball/master",
+    "kalabox-email": "^0.1.0",
     "lodash": "^3.10.1",
     "octonode": "^0.7.4",
     "properties": "^1.2.1",
