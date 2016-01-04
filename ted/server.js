@@ -28,6 +28,13 @@ var github = new Github({
 });
 
 /*
+ * Respond to a status ping from a monitor server.
+ */
+app.get('/status', function(req, res) {
+  res.json({status: 'OK'});
+});
+
+/*
  * Respond with a json result object read from disk.
  */
 app.get('/result/:id', function(req, res) {
