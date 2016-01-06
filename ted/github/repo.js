@@ -41,6 +41,18 @@ Repo.prototype.testFiles = function() {
   });
 };
 
+Repo.prototype.hooks = function() {
+  var self = this;
+  return Promise.fromNode(function(cb) {
+    self.api.hooks(cb);
+  })
+  // Return just the json data.
+  .then(function(results) {
+    // @todo: check for errors here?
+    return results[0];
+  });
+};
+
 /*
  * Export constructor.
  */

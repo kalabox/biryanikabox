@@ -135,15 +135,15 @@ Context.prototype.install = function(opts) {
     .then(function() {
       if (self.machine.platform === 'darwin') {
         // OSX
-        return self.machine.script('../scripts/build/build_deps_darwin.sh');
+        return self.machine.script('./scripts/build/build_deps_darwin.sh');
       } else if (self.machine.platform === 'linux') {
         // Linux
-        return self.machine.script('../scripts/build/build_deps_linux.sh');
+        return self.machine.script('./scripts/build/build_deps_linux.sh');
       } else if (self.machine.platform === 'win32') {
         // Win32
-        return self.machine.copy('../scripts/build/build_deps_win32.ps1')
+        return self.machine.copy('./scripts/build/build_deps_win32.ps1')
         .then(function() {
-          return self.machine.script('../scripts/build/build_deps_win32.bat');
+          return self.machine.script('./scripts/build/build_deps_win32.bat');
         })
         // Grab windows environmental variables.
         .then(function() {
@@ -183,17 +183,17 @@ Context.prototype.install = function(opts) {
       var args = _.filter([opts.sha], _.identity);
       if (self.machine.platform === 'darwin') {
         // OSX
-        return self.machine.script('../scripts/install/install_posix.sh', {
+        return self.machine.script('./scripts/install/install_posix.sh', {
           args: args
         });
       } else if (self.machine.platform === 'linux') {
         // Linux
-        return self.machine.script('../scripts/install/install_posix.sh', {
+        return self.machine.script('./scripts/install/install_posix.sh', {
           args: args
         });
       } else if (self.machine.platform === 'win32') {
         // Win32
-        return self.machine.script('../scripts/install/install_win32.bat', {
+        return self.machine.script('./scripts/install/install_win32.bat', {
           args: args
         })
         // Grab windows environmental variables.

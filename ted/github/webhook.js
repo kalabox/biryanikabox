@@ -35,6 +35,23 @@ function Webhook(config) {
 }
 
 /*
+ * Find out if this webhook should be run based on setup.
+ */
+Webhook.prototype.shouldRun = function() {
+  var self = this;
+  var org = self.repo.user;
+  var repo = self.repo.repo;
+  var orgs = global.config.server.github.orgs;
+  /*
+   * @todo: we should validate that each and every repo has been setup
+   * in the config to catch new repos.
+   */
+  var shouldRun = (!!orgs[org] && !!orgs[org][repo]);
+  console.log('shouldRun=' + shouldRun);
+  return shouldRun;
+};
+
+/*
  * Initialize webhook.
  */
 Webhook.prototype.init = function() {

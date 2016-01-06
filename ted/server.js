@@ -71,12 +71,14 @@ app.post('/github/webhook', function(req, res) {
   Promise.try(function() {
     return github.createWebhook(req)
     .then(function(webhook) {
-      return webhook.init()
-      .then(function() {
-        return queueJob(function() {
-          return webhook.run();
+      if (webhook && webhook.shouldRun()) {
+        return webhook.init()
+        .then(function() {
+          return queueJob(function() {
+            return webhook.run();
+          });
         });
-      });
+      }
     });
   })
   // There was a problem.
