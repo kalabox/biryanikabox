@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ted-server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/ted/src/kalabox-ted/scripts/startup/start-ted.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>WorkingDirectory</key>
+  <string>/Users/ted/src/kalabox-ted/</string>
+  <key>StandardOutPath</key>
+  <string>/Users/ted/ted-server-stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/ted/ted-server-stderr.log</string>
+  <key>Debug</key>
+  <true/>
+</dict>
+</plist>

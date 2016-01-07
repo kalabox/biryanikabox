@@ -12,7 +12,7 @@ var Promise = require('bluebird');
 global.ted = {
   // Global state.
   state: {
-    sha: 'HEAD',
+    ref: 'HEAD',
     vms: []
   },
   // Helper modules.
@@ -27,10 +27,10 @@ global.ted = {
     _.each(self.state.vms, function(tag) {
       // Use intrinsic global describe function.
       describe(
-        util.format('%s#%s - %s', tag, self.state.sha, title), function() {
+        util.format('%s#%s - %s', tag, self.state.ref, title), function() {
         return fn({
           tag: tag,
-          sha: self.state.sha
+          ref: self.state.ref
         });
       });
     });

@@ -6,7 +6,8 @@ var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
 var path = require('path');
-var config = global.config = require(path.join(process.cwd(), argv.config));
+console.log('config: %s', argv.config);
+var config = global.config = require(argv.config);
 var results = require('./results.js');
 var Github = require('./github.js');
 

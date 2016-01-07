@@ -22,11 +22,12 @@ function Webhook(config) {
     this.kind = config.headers['x-github-event'];
     this.repo = new Repo({
       client: config.client,
+      ref: config.body.after,
       user: config.body.repository.owner.name,
       repo: config.body.repository.name
     });
     this.commit = new Commit({
-      sha: config.body.after,
+      ref: config.body.after,
       repo: this.repo
     });
   } else {
@@ -223,7 +224,8 @@ Webhook.prototype.run = function() {
   })
   // Report errors.
   .catch(function(err) {
-    console.log(err.message);
+    console.log('message: ' + err.message);
+    console.log('  stack: ' + err.stack);
   });
 };
 

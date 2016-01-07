@@ -33,6 +33,7 @@ Org.prototype.repos = function() {
   .map(function(data) {
     return new Repo({
       client: self.api,
+      ref: null,
       user: self.name,
       repo: data.name
     });

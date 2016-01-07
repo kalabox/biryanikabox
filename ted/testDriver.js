@@ -180,7 +180,7 @@ Context.prototype.install = function(opts) {
     })
     // Install kalabox.
     .then(function() {
-      var args = _.filter([opts.sha], _.identity);
+      var args = _.filter([opts.ref], _.identity);
       if (self.machine.platform === 'darwin') {
         // OSX
         return self.machine.script('./scripts/install/install_posix.sh', {

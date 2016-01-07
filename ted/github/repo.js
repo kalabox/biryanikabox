@@ -4,6 +4,7 @@ var util = require('util');
 var Status = require('./status.js');
 var Promise = require('bluebird');
 var File = require('./file.js');
+var VError = require('verror');
 
 /*
  * Constructor. Repo represents a github repo.
@@ -14,6 +15,7 @@ function Repo(config) {
     this.client = config.client;
     this.user = config.user;
     this.repo = config.repo;
+    this.ref = config.ref;
     this.name = util.format('%s/%s', config.user, config.repo);
     this.api = config.client.repo(this.name);
   } else {
@@ -26,9 +28,13 @@ function Repo(config) {
  */
 Repo.prototype.testFiles = function() {
   var self = this;
+  var dir = 'ted';
   // Get meta data about contents of ted directory in repo.
   return Promise.fromNode(function(cb) {
-    self.api.contents('ted', cb);
+    self.api.contents(dir, self.ref, cb);
+  })
+  .catch(function(err) {
+    throw new VError(err, 'Error getting repo contents: %s', dir);
   })
   // Return just the json data.
   .then(function(results) {

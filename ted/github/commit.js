@@ -5,7 +5,7 @@ var Status = require('./status.js');
 function Commit(config) {
   if (this instanceof Commit) {
     this.config = config;
-    this.sha = config.sha;
+    this.ref = config.ref;
     this.repo = config.repo;
   } else {
     return new Commit(config);
@@ -14,7 +14,7 @@ function Commit(config) {
 
 Commit.prototype.createStatus = function(opts) {
   var self = this;
-  opts.sha = self.sha;
+  opts.ref = self.ref;
   opts.repo = self.repo;
   opts.commit = self;
   var status = new Status(opts);

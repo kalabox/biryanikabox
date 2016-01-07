@@ -22,7 +22,7 @@ function Batch(config) {
     this.config = config;
     this.name = this.config.name;
     this.files = this.config.files;
-    this.sha = this.config.sha || 'HEAD';
+    this.ref = this.config.ref || 'HEAD';
     this.tags = this.config.tags;
     this.config.timeout = this.config.timeout || 20 * 60 * 1000;
     this.write = process.stdout.write;
@@ -72,7 +72,7 @@ Batch.prototype.unmute = function() {
  * Load tags into env.
  */
 Batch.prototype.loadTags = function() {
-  global.ted.state.sha = this.sha;
+  global.ted.state.ref = this.ref;
   global.ted.state.vms = [];
   _.each(this.tags, function(tag) {
     global.ted.state.vms.push(tag);

@@ -44,7 +44,7 @@ Status.prototype.info = function() {
       description: self.description,
       context: self.context,
       repo: self.repo.name,
-      sha: self.commit.sha,
+      ref: self.commit.ref,
       result: result
     };
   });
@@ -68,7 +68,7 @@ Status.prototype._update = function(opts) {
       self.description = opts.description = opts.description || self.description;
       self.target_url = opts.target_url = result ? result.url() : null;
       self.context = opts.context = self.context;
-      self.repo.api.status(self.commit.sha, opts, cb);
+      self.repo.api.status(self.commit.ref, opts, cb);
     });
   });
 };
