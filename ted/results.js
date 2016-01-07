@@ -6,7 +6,6 @@ var path = require('path');
 var uuid = require('uuid');
 var Promise = require('bluebird');
 var util = require('util');
-var config = require('./config.json');
 
 /*
  * Constructor.
@@ -29,8 +28,8 @@ Result.prototype.url = function() {
   var self = this;
   return util.format(
     'http://%s:%s/result/%s',
-    config.server.host,
-    config.server.port,
+    global.config.server.host,
+    global.config.server.port,
     self.id
   );
 };
