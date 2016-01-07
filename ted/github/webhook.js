@@ -76,6 +76,8 @@ Webhook.prototype.sendEmail = function(opts) {
   opts = opts || {};
   opts.from = opts.from || 'ted@kalabox.io';
   opts.to = opts.to || '@ci';
+  opts.subject = opts.subject || '<subject>';
+  opts.subject = opts.subject + ' [' + self.commit.ref + ']';
   return self.info()
   .then(function(info) {
     opts.text = opts.text || JSON.stringify(info, null, '  ');
