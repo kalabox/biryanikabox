@@ -22,6 +22,27 @@ function debug() {
 }
 
 /*
+ * Retry a function until it doesn't fail or until we run out of trys.
+ */
+function retry(fn) {
+  var rec = function(counter) {
+    return Promise.try(fn)
+    .catch(function(err) {
+      if (counter <= 3) {
+        return Promise.delay(counter * 10 * 1000)
+        .then(function() {
+          console.log('retrying: ' + counter);
+          return rec(counter + 1);
+        });
+      } else {
+        throw err;
+      }
+    });
+  };
+  return rec(1);
+}
+
+/*
  * Get directory for machine executable.
  */
 var getVMRunBinPath = function() {
@@ -323,13 +344,16 @@ Machine.prototype.__start = function(opts) {
  */
 Machine.prototype.start = function(opts) {
   var self = this;
-  // Start the vm.
-  return self.__start(opts)
-  // Wait a short duration.
-  .delay(30 * 1000)
-  // Wait for vm to become responsive.
-  .then(function() {
-    return self.wait();
+  // Run inside of a retry.
+  return retry(function() {
+    // Start the vm.
+    return self.__start(opts)
+    // Wait a short duration.
+    .delay(30 * 1000)
+    // Wait for vm to become responsive.
+    .then(function() {
+      return self.wait();
+    });
   });
 };
 
@@ -350,23 +374,10 @@ Machine.prototype.stop = function() {
  */
 Machine.prototype.wait = function(/*user*/) {
   var self = this;
-  return Promise.try(function() {
-    var rec = function(counter) {
-      var whicher = (self.platform === 'win32') ? 'where' : 'which';
-      var shell = (self.platform === 'win32') ? 'cmd.exe' : 'bash';
-      return self.script([whicher, shell].join(' '))
-      .catch(function(err) {
-        if (counter < 6) {
-          return Promise.delay(counter * 10 * 1000)
-          .then(function() {
-            return rec(counter + 1);
-          });
-        } else {
-          throw err;
-        }
-      });
-    };
-    return rec(1);
+  return retry(function() {
+    var whicher = (self.platform === 'win32') ? 'where' : 'which';
+    var shell = (self.platform === 'win32') ? 'cmd.exe' : 'bash';
+    return self.script([whicher, shell].join(' '));
   })
   .catch(function(err) {
     throw new VError(err, 'Error waiting for vm: ' + self.path);
