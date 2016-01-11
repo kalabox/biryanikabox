@@ -30,20 +30,39 @@ Repo.prototype.testFiles = function() {
   var self = this;
   var dir = 'ted';
   // Get meta data about contents of ted directory in repo.
-  return Promise.fromNode(function(cb) {
-    self.api.contents(dir, self.ref, cb);
-  })
-  .catch(function(err) {
-    throw new VError(err, 'Error getting repo contents: %s', dir);
-  })
-  // Return just the json data.
-  .then(function(results) {
-    // @todo: check for errors here?
-    return results[0];
+  return Promise.try(function() {
+    // Get meta data.
+    return Promise.fromNode(function(cb) {
+      self.api.contents(dir, self.ref, cb);
+    })
+    // Return just the json data.
+    .then(function(results) {
+      return results[0];
+    })
+    // Handle and wrap errors.
+    .catch(function(err) {
+      if (err.message === 'Not Found') {
+        // Directory exists, return empty array.
+        return [];
+      } else {
+        // Wrap errors.
+        throw new VError(err, 'Error getting repo contents: %s', dir);
+      }
+    });
   })
   // Map each chunk of meta data to a File object.
   .map(function(data) {
     return new File(data);
+  });
+};
+
+/*
+ * Returns an object representing this repos state.
+ */
+Repo.prototype.info = function() {
+  var self = this;
+  return Promise.resolve({
+    name: self.name
   });
 };
 

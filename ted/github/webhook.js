@@ -27,7 +27,9 @@ function Webhook(config) {
       repo: config.body.repository.name
     });
     this.commit = new Commit({
+      client: config.client,
       ref: config.body.after,
+      message: _.get(config, 'body.commits[0].message'),
       repo: this.repo
     });
   } else {
@@ -40,16 +42,30 @@ function Webhook(config) {
  */
 Webhook.prototype.shouldRun = function() {
   var self = this;
-  var org = self.repo.user;
-  var repo = self.repo.repo;
-  var orgs = global.config.server.github.orgs;
-  /*
-   * @todo: we should validate that each and every repo has been setup
-   * in the config to catch new repos.
-   */
-  var shouldRun = (!!orgs[org] && !!orgs[org][repo]);
-  console.log('shouldRun=' + shouldRun);
-  return shouldRun;
+  // Is this repo setup in the config to be run?
+  return Promise.try(function() {
+    var org = self.repo.user;
+    var repo = self.repo.repo;
+    var orgs = global.config.server.github.orgs;
+    /*
+     * @todo: we should validate that each and every repo has been setup
+     * in the config to catch new repos.
+     */
+    return !!orgs[org] && !!orgs[org][repo];
+  })
+  // Does this repo contain any test files?
+  .then(function(shouldRunRepo) {
+    return shouldRunRepo &&
+    self.repo.testFiles()
+    .then(function(files) {
+      return !!files.length;
+    });
+  })
+  // Output result and return.
+  .then(function(shouldRun) {
+    console.log('shouldRun=' + shouldRun);
+    return shouldRun;
+  });
 };
 
 /*
@@ -151,7 +167,7 @@ Webhook.prototype.run = function() {
         // Create a new github status.
         return self.commit.createStatus({
           description: data.fullTitle,
-          context: util.format('test-%s', cursor.count)
+          rawContext: util.format('test-%s', cursor.count)
         })
         // Update status to success state along with result.
         .then(function(status) {
@@ -169,7 +185,7 @@ Webhook.prototype.run = function() {
         // Create a new github status.
         return self.commit.createStatus({
           description: data.fullTitle,
-          context: util.format('test-%s', cursor.count)
+          rawContext: util.format('test-%s', cursor.count)
         })
         // Update status to a failure state along with result.
         .then(function(status) {

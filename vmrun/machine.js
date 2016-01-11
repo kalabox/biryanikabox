@@ -28,7 +28,7 @@ function retry(fn) {
   var rec = function(counter) {
     return Promise.try(fn)
     .catch(function(err) {
-      if (counter <= 3) {
+      if (counter <= 5) {
         return Promise.delay(counter * 10 * 1000)
         .then(function() {
           console.log('retrying: ' + counter);

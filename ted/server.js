@@ -68,19 +68,31 @@ app.get('/result/:id', function(req, res) {
 });
 
 app.post('/github/webhook', function(req, res) {
-  // Add job to the job queue.
-  Promise.try(function() {
-    return github.createWebhook(req)
-    .then(function(webhook) {
-      if (webhook && webhook.shouldRun()) {
-        return webhook.init()
-        .then(function() {
-          return queueJob(function() {
-            return webhook.run();
-          });
+  // Create a webhook object.
+  return github.createWebhook(req)
+  // Filter webhook if it isn't a runnable webhook.
+  .then(function(webhook) {
+    if (webhook) {
+      return webhook.shouldRun()
+      .then(function(shouldRun) {
+        if (shouldRun) {
+          return webhook;
+        }
+      });
+    }
+  })
+  // If webhook is runnable init it and add it to the job queue.
+  .then(function(webhook) {
+    if (webhook) {
+      // Init webhook.
+      return webhook.init()
+      // Add job to the job queue.
+      .then(function() {
+        return queueJob(function() {
+          return webhook.run();
         });
-      }
-    });
+      });
+    }
   })
   // There was a problem.
   .catch(function(err) {
