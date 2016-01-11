@@ -6,8 +6,7 @@ var Promise = require('bluebird');
 var Batch = require('./batch.js');
 var argv = require('yargs').argv;
 var path = require('path');
-console.log('config: %s', argv.config);
-var config = global.config = require(argv.config);
+var config = require('../config/');
 var results = require('./results.js');
 var Github = require('./github.js');
 
@@ -24,9 +23,11 @@ function queueJob(fn) {
   jobs = jobs.then(fn);
 }
 
-var github = new Github({
-  token: config.server.github.token
-});
+var github = function() {
+  return new Github({
+    token: config.slot.server.github.token
+  });
+};
 
 /*
  * Respond to a status ping from a monitor server.
@@ -69,18 +70,16 @@ app.get('/result/:id', function(req, res) {
 
 app.post('/github/webhook', function(req, res) {
   // Add job to the job queue.
-  Promise.try(function() {
-    return github.createWebhook(req)
-    .then(function(webhook) {
-      if (webhook && webhook.shouldRun()) {
-        return webhook.init()
-        .then(function() {
-          return queueJob(function() {
-            return webhook.run();
-          });
+  return github().createWebhook(req)
+  .then(function(webhook) {
+    if (webhook && webhook.shouldRun()) {
+      return webhook.init()
+      .then(function() {
+        return queueJob(function() {
+          return webhook.run();
         });
-      }
-    });
+      });
+    }
   })
   // There was a problem.
   .catch(function(err) {
@@ -161,14 +160,19 @@ app.post('/batch/', function(req, res) {
 
 });
 
-// Configure port.
-var port = config.server.port;
 // Start listening.
 Promise.try(function() {
-  return Promise.fromNode(function(cb) {
-    app.listen(port, cb);
+  console.log('Loading config slot: ' + argv.slot);
+  return config.load({
+    slot: argv.slot
   })
   .then(function() {
-    console.log('Listening on port: %s', port);
+    var port = config.slot.server.port;
+    return Promise.fromNode(function(cb) {
+      app.listen(port, cb);
+    })
+    .then(function() {
+      console.log('Listening on port: %s', port);
+    });
   });
 });
