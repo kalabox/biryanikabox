@@ -17,11 +17,15 @@ function Status(config) {
     this.state = config.state || 'pending';
     this.targetUrl = config.targetUrl;
     this.description = config.description;
-    this.context = _.filter([
-      'ci',
-      'ted',
-      config.context
-    ], _.identity).join('/');
+    if (!config.context || config.rawContext) {
+      this.context = _.filter([
+        'ci',
+        'ted',
+        config.rawContext
+      ], _.identity).join('/');
+    } else {
+      this.context = config.context;
+    }
   } else {
     return new Status(config);
   }
@@ -32,19 +36,23 @@ function Status(config) {
  */
 Status.prototype.info = function() {
   var self = this;
-  return Promise.try(function() {
-    if (self.result) {
-      return self.result.load();
-    }
-  })
-  .then(function(result) {
+  return Promise.all([
+    Promise.try(function() {
+      if (self.result) {
+        return self.result.load()
+      }
+    }),
+    self.commit.info(),
+    self.repo.info()
+  ])
+  .spread(function(result, commit, repo) {
     return {
       state: self.state,
       targetUrl: self.targetUrl,
       description: self.description,
       context: self.context,
-      repo: self.repo.name,
-      ref: self.commit.ref,
+      repo: repo,
+      commit: commit,
       result: result
     };
   });
