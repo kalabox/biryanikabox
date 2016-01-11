@@ -8,7 +8,8 @@ var Batch = require('../batch.js');
 var util = require('util');
 var yaml = require('../yaml.js');
 var results = require('../results.js');
-var email = require('kalabox-email')(global.config.email);
+var config = require('../../config/');
+var email = require('kalabox-email');
 
 /*
  * Constructor.
@@ -97,7 +98,7 @@ Webhook.prototype.sendEmail = function(opts) {
   return self.info()
   .then(function(info) {
     opts.text = opts.text || JSON.stringify(info, null, '  ');
-    return email.send(opts);
+    return email(config.email).send(opts);
   });
 };
 
@@ -139,7 +140,7 @@ Webhook.prototype.run = function() {
   })
   // Load batch from yaml file and add test files to batch.
   .then(function(files) {
-    var config = global.config.batch;
+    var config = config.slot.batch;
     config.files = files;
     return new Batch(config);
   })
