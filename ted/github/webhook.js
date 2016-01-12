@@ -47,7 +47,7 @@ Webhook.prototype.shouldRun = function() {
   return Promise.try(function() {
     var org = self.repo.user;
     var repo = self.repo.repo;
-    var orgs = global.config.server.github.orgs;
+    var orgs = config.slot.server.github.orgs;
     /*
      * @todo: we should validate that each and every repo has been setup
      * in the config to catch new repos.
@@ -140,9 +140,9 @@ Webhook.prototype.run = function() {
   })
   // Load batch from yaml file and add test files to batch.
   .then(function(files) {
-    var config = config.slot.batch;
-    config.files = files;
-    return new Batch(config);
+    var batchConfig = config.slot.batch;
+    batchConfig.files = files;
+    return new Batch(batchConfig);
   })
   // Subscribe to events and run batch.
   .then(function(batch) {

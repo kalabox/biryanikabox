@@ -70,7 +70,7 @@ app.get('/result/:id', function(req, res) {
 
 app.post('/github/webhook', function(req, res) {
   // Create a webhook object.
-  return github.createWebhook(req)
+  return github().createWebhook(req)
   // Filter webhook if it isn't a runnable webhook.
   .then(function(webhook) {
     if (webhook) {
